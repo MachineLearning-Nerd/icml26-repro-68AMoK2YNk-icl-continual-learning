@@ -1,0 +1,1438 @@
+\documentclass{article}
+
+% Recommended, but optional, packages for figures and better typesetting:
+\usepackage{microtype}
+\usepackage{graphicx}
+\usepackage{subcaption}
+\usepackage{booktabs} % for professional tables
+\usepackage{xcolor}
+\usepackage{tcolorbox}
+\usepackage{multirow}
+
+% hyperref makes hyperlinks in the resulting PDF.
+% If your build breaks (sometimes temporarily if a hyperlink spans a page)
+% please comment out the following usepackage line and replace
+% \usepackage{icml2026} with \usepackage[nohyperref]{icml2026} above.
+\usepackage{hyperref}
+
+
+% Attempt to make hyperref and algorithmic work together better:
+\newcommand{\theHalgorithm}{\arabic{algorithm}}
+
+% Use the following line for the initial blind version submitted for review:
+%\usepackage{icml2026}
+
+% For preprint, use
+%\usepackage[preprint]{icml2026}
+
+% If accepted, instead use the following line for the camera-ready submission:
+\usepackage[accepted]{icml2026}
+
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{mathtools}
+\usepackage{amsthm}
+
+
+% if you use cleveref..
+\usepackage[capitalize,noabbrev]{cleveref}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% THEOREMS
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{assumption}[theorem]{Assumption}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+\newcommand{\meng}[1]{\textcolor{blue}{#1}}
+\newcommand{\Guangyu}[1]{\textcolor{orange}{#1}}
+% Todonotes is useful during development; simply uncomment the next line
+%    and comment out the line below the next line to turn off comments
+%\usepackage[disable,textsize=tiny]{todonotes}
+\usepackage[textsize=tiny]{todonotes}
+
+% The \icmltitle you define below is probably too long as a header.
+% Therefore, a short form for the running title is supplied here:
+\icmltitlerunning{Understanding Generalization and Forgetting in In-Context Continual Learning}
+
+\begin{document}
+
+\twocolumn[
+  \icmltitle{Understanding Generalization and Forgetting in In-Context Continual Learning}
+
+  % It is OKAY to include author information, even for blind submissions: the
+  % style file will automatically remove it for you unless you've provided
+  % the [accepted] option to the icml2026 package.
+
+  % List of affiliations: The first argument should be a (short) identifier you
+  % will use later to specify author affiliations Academic affiliations
+  % should list Department, University, City, Region, Country Industry
+  % affiliations should list Company, City, Region, Country
+
+  % You can specify symbols, otherwise they are numbered in order. Ideally, you
+  % should not use this facility. Affiliations will be numbered in order of
+  % appearance and this is the preferred way.
+  \icmlsetsymbol{equal}{*}
+
+  \begin{icmlauthorlist}
+    \icmlauthor{Guangyu Li}{1,equal}
+    \icmlauthor{Meng Ding}{1,2,equal}
+    \icmlauthor{Lijie Hu}{1}
+    %\icmlauthor{Firstname4 Lastname4}{sch}
+    %\icmlauthor{Firstname5 Lastname5}{yyy}
+    %\icmlauthor{Firstname6 Lastname6}{sch,yyy,comp}
+    %\icmlauthor{Firstname7 Lastname7}{comp}
+    %\icmlauthor{}{sch}
+    %\icmlauthor{Firstname8 Lastname8}{sch}
+    %\icmlauthor{Firstname8 Lastname8}{yyy,comp}
+    %\icmlauthor{}{sch}
+    %\icmlauthor{}{sch}
+  \end{icmlauthorlist}
+
+  \icmlaffiliation{1}{Mohamed bin Zayed University of Artificial Intelligence (MBZUAI)}
+  \icmlaffiliation{2}{University of Buffalo}
+  \icmlcorrespondingauthor{Lijie Hu}{lijie.hu@mbzuai.ac.ae}
+  %\icmlcorrespondingauthor{Firstname2 Lastname2}{first2.last2@www.uk}
+
+  % You may provide any keywords that you find helpful for describing your
+  % paper; these are used to populate the "keywords" metadata in the PDF but
+  % will not be shown in the document
+  \icmlkeywords{Machine Learning, ICML}
+
+  \vskip 0.3in
+]
+
+% this must go after the closing bracket ] following \twocolumn[ ...
+
+% This command actually creates the footnote in the first column listing the
+% affiliations and the copyright notice. The command takes one argument, which
+% is text to display at the start of the footnote. The \icmlEqualContribution
+% command is standard text for equal contribution. Remove it (just {}) if you
+% do not need this facility.
+
+% Use ONE of the following lines. DO NOT remove the command.
+% If you have no special notice, KEEP empty braces:
+%\printAffiliationsAndNotice{}  % no special notice (required even if empty)
+% Or, if applicable, use the standard equal contribution text:
+\printAffiliationsAndNotice{\icmlEqualContribution}
+ 
+\begin{abstract}
+In-context learning (ICL) derives its power from enabling Large Language Models to adapt to new tasks via prompt-based reasoning alone, entirely bypassing the need for parameter updates. Existing theories primarily study ICL in single-task settings, while real-world prompts often contain sequences of heterogeneous tasks, leaving a gap in understanding whether Large Language Models implicitly perform continual learning during inference. To bridge this gap, we propose the first theoretical framework for in-context continual learning, modeling how a pretrained Transformer processes multiple sequential tasks within a single prompt through shared attention mechanisms. Focusing on linear and masked linear self-attention, we derive error expressions for model predictions under sequential task prompts and analyze their generalization and forgetting behavior. Our results reveal that standard attention mechanisms inevitably induce inter-task interference by uniformly or causally aggregating historical contexts, leading to systematic bias. We further provide a bias–variance–interference decomposition of prediction error, characterizing when historical in-context information yields positive transfer or provable negative transfer. This analysis exposes fundamental limits of attention-based continual inference and offers theoretical explanations for order sensitivity and performance degradation in long prompts.
+\end{abstract}
+
+\vspace{-0.1in}\section{Introduction}
+Large language models (LLMs) exhibit remarkable generalization abilities across a wide range of tasks, among which \emph{in-context learning} (ICL) has emerged as one of their most prominent features~\cite{brown2020language}. Through ICL, pretrained LLMs adapt to a new task purely at inference time using a small set of demonstrations embedded within the prompt, without any parameter updates. This parameter-free adaptation makes LLMs versatile and efficient solvers, tackling diverse problems~\citep{garg2022what,pmlr-v202-li23l,hu2024understanding,jiao2026understanding,tang2026context}.
+
+The inference-time nature of ICL suggests a tantalizing possibility: beyond one-shot adaptation, could LLMs accumulate, reuse, and update task-relevant information over long contexts, effectively behaving as a \emph{continuous learner}? In practice, real-world prompts are often lengthy and heterogeneous, naturally containing a sequence of tasks rather than a single one. When such prompts are processed by a shared attention mechanism, representations from earlier tasks inevitably influence predictions for later tasks~\citep{kang2025incontextlearningperformcontinual,momeni-etal-2025-context}. This interaction can induce phenomena reminiscent of continual learning (CL)~\citep{shi2025survey,zheng2025survey}, including knowledge transfer, interference, and even negative transfer, yet occurring entirely during inference without parameter updates.
+
+Despite its practical relevance, this phenomenon remains poorly understood. Existing theoretical studies of ICL predominantly focus on single-task settings, where all in-context examples are generated by the same underlying function in one turn~\citep{bai2023transformers,ahn2023transformers,pmlr-v202-von-oswald23a,zhang_context_2024}, and thus do not capture inter-task dependencies or sequential interference. Moreover, classical continual learning theory primarily analyzes training-time dynamics driven by parameter updates~\citep{pmlr-v202-lin23f,pmlr-v178-evron22a,pmlr-v235-ding24c,li2025towards}, which fundamentally differs from the parameter-free, attention-based adaptation intrinsic to ICL. As a result, a critical gap remains between these two lines of research. This gap motivates the following central question:
+\begin{tcolorbox}[boxrule=0.2pt, boxsep=0pt]
+\centering
+\textbf{\textit{How do LLMs perform continual learning implicitly through attention during inference?}}
+\end{tcolorbox} 
+
+In this work, we take a first step toward answering this question by developing a theoretical framework for in-context continual learning to understand the generalization and forgetting behaviors in sequential tasks. Our analysis reveals that even in the absence of parameter updates, attention-based aggregation induces systematic bias and interference across tasks, leading to provable limits on continual inference. Our main contributions are summarized as follows:
+\begin{itemize}
+    \item \textbf{First Theoretical Formalization of In-Context Continual Learning:} We formalize \emph{in-context continual learning} as a setting in which a pretrained Transformer processes a sequence of tasks concatenated into a single prompt, performing sequential task inference through shared attention without parameter updates. This formulation explicitly bridges ICL and core concepts in continual learning, including task order, historical accumulation, and interference.
+    \item \textbf{Bias-Variance-Interference Decomposition.} We provide an explicit bias-variance-interference decomposition of prediction error for all specific tasks. This characterization quantifies how task similarity, context length, and the order of tasks jointly determine whether historical context yields positive transfer or provable negative transfer. In particular, we show that increasing context length or task history does not universally improve performance and can degrade generalization when tasks are misaligned.
+    \item \textbf{Theoretical Grounding for Empirical Phenomena.} Our framework explains key phenomena observed in real models, such as order-dependent forgetting, the plateauing benefit of longer contexts, and the impact of task similarity on interference. These results provide concrete guidance for designing prompts and evaluating LLM behavior in multi-task or continual settings.
+\end{itemize}
+
+Overall, our results suggest that even without parameter updates, LLMs inherently accumulate, interfere, and sometimes forget task-specific information over long contexts, highlighting both the potential and the limits of attention-driven continual inference and providing concrete guidance for prompt design and multi-task evaluation in practice.
+
+\vspace{-0.1in}\section{Related Work}
+\noindent \textbf{Empirical studies of synthetic ICL tasks.}
+\citet{brown2020language} highlighted the exceptional capabilities of the Transformer model in in-context learning within their GPT-3 research. This intriguing phenomenon of Transformers has attracted many attentions, leading to various interpretations and hypotheses about its underlying mechanism~\cite{wei2022emergent,olsson2022context,schaeffer2023are,chan_data_2022,raventos_pretraining_2023,min-etal-2022-metaicl}. A recent work by~\citet{kang2025incontextlearningperformcontinual} investigates the ability of in-context learning (ICL) to perform continual learning without parameter updates by leveraging task scheduling and prompt rearrangement. They introduce an in-context continual learning (ICCL) paradigm where large language models demonstrate long-term retention and reduced catastrophic forgetting in multitask sequences. While this line of work reveals that ICL can emulate continual learning phenomena at inference time, it does not explain when and why in-context generalization succeeds or fails, nor how interference between tasks leads to forgetting, which is the focus of our work. 
+
+\noindent \textbf{Theoretical studies of In-context Learning.}
+Much theoretical research on ICL centers on the perspective that Transformer models learn specific algorithms during pretraining, which they can then flexibly deploy to solve in-context tasks~\cite{xie2022an,bai2023transformers,li2024how,liu2025on,pmlr-v258-chang25b}. Within this line of research, closest to our work are a series of papers that consider ICL of linear regression by simplified Transformers using linear attention modules~\cite{bai2023transformers,ahn2023transformers,pmlr-v202-von-oswald23a,zhang_context_2024,wu_how_2024,duraisamy2024finitesampleanalysisbounds}. However, most existing theoretical analyses focus on single-task in-context learning, and few studies examine the behavior of ICL in multi-task sequential settings at inference time. In particular, how generalization performance evolves across a sequence of in-context tasks and how interference between tasks induces forgetting remains poorly understood. 
+
+\noindent \textbf{Continual Learning.}
+Continual learning (CL) is a learning paradigm where a model needs to continuously learn a sequence of tasks~\cite{shi2025survey,zheng2025survey}. A primary challenge in continual learning is the \textit{Catastrophic Forgetting}, wherein the model forgets previously acquired knowledge when exposed to new data~\cite{liu2022continual,pmlr-v80-serra18a,jin_gradient-based_2021,momeni-etal-2025-context,irie2025metalearning}. Based on the huge empirical achievement of continual learning, lots of works aim to analyze the forgetting and generalization error theoretically. \citet{pmlr-v202-lin23f} provides explicit theoretical results in a general CL setup with an arbitrary number of tasks, which enables us to comprehensively understand what factors affect the forgetting and generalization performance of CL. Subsequently, a growing body of theoretical work has further deepened these insights, offering more refined analyses of forgetting dynamics and generalization behavior under diverse continual learning settings~\cite{pmlr-v178-evron22a,pmlr-v235-ding24c,li2025towards,li2025optimal,irie2025metalearning}.
+
+\vspace{-0.1in}\section{Preliminaries}
+\textbf{Notation.}
+We first describe the notation we use in the paper. Let $[n] = \{1, 2, ..., n\}.$ For matrix $X$, we use $[X]_{p:q,r:s}$ to denote the submatrix that contains rows $p$ to $q$ and columns $r$ to $s$, and we use $[X]_{:,i}$ and $[X]_{j,:}$ to denote the i-th column and j-th row of X respectively. We use $I_d$ to denote the $d$-dimensional identity matrix and sometimes we also use $I$ when the dimension is clear from the context. Unless otherwise defined, we use lower case letters for scalars and vectors, and use upper case letters for matrices.
+
+\subsection{Transformer and Masked Linear Attention}
+\label{lsa}
+Following the existing ICL analysis, we focus on a decoder-based Transformer architecture, where each attention layer adopts a decoder-based attention mask~\cite{bai2023transformers,ahn2023transformers,pmlr-v202-von-oswald23a,zhang_context_2024,wu_how_2024,duraisamy2024finitesampleanalysisbounds,zhang2026benign}. Before formalizing the specific models analyzed, we first recall the definition of the standard softmax self-attention mechanism.
+
+\begin{definition}[Masked Multi-Head Self-Attention]
+Let $D$ denote the embedding dimension and let $P\in\mathbb{R}^{D\times N}$ be an input sequence of length $N$. An $L$-head masked self-attention layer is parameterized by $\{(V_l,Q_l,K_l)\}_{l=1}^L$ with $V_l,Q_l,K_l\in\mathbb{R}^{D\times D}$. The output of the attention layer is
+\[
+\mathrm{Attn}(P)
+= P + \sum_{l=1}^L (V_l P)\,
+\mathrm{mask}\!\left(
+\sigma\!\left((K_l P)^\top(Q_l P)\right)
+\right),
+\]
+where $\sigma(\cdot)$ denotes the softmax function and the mask matrix satisfies
+\[
+[\mathrm{mask}(A)]_{i,j} =
+\begin{cases}
+\frac{1}{j}A_{i,j}, & i\le j,\\
+0, & i>j.
+\end{cases}
+\]
+\end{definition}
+
+Following previous theoretical studies on in-context learning~\cite{zhang2024trained, Lu_2025}, we consider two simplified versions of the single-layer self-attention, which are more amenable to theoretical analysis and yet are still capable of in-context learning linear models.
+
+\noindent \textbf{Linear self-attention.}
+The linear self-attention model is defined as
+\[
+f_{\mathrm{LSA}}(P;\theta)
+= P + WP\frac{P^\top VP}{\rho},
+\]
+where $W$ and $V$ are learnable matrices parameterized by $\theta$, and $\rho$ is a normalization factor. This formulation removes the softmax nonlinearity and merges the query--key and projection--value matrices, and has been widely used in theoretical studies of transformers and in-context learning~\cite{zhang2024trained,ahn2023transformers,olsson2022context,pmlr-v202-li23l}.
+
+While this model supports in-context learning of linear predictors in single-task scenarios, it mixes information across all tokens uniformly and does not respect task boundaries or order in multi-task prompts. As we show in Theorem~\ref{prediction} later, this leads to information leakage from future tasks: the model exploits data from subsequent tasks to predict $y_{t, N+1}$ for the current task $t$.
+
+\noindent \textbf{Masked linear self-attention.}
+To encode task order structure, we introduce a causal mask:
+\[
+f_{\mathrm{MSA}}(P;\theta)
+= P + WP\cdot
+\mathrm{mask}\!\left(P^\top VP\right).
+\]
+This model ensures that information flows only forward in the sequence, so that earlier tokens may influence later ones but not vice versa. Compared to linear attention, masked linear attention better aligns with real-world scenarios. Currently, the vast majority of attention-based models adopt this structure and our analysis will primarily focus on this model. 
+
+\subsection{Single Task In-Context Learning}
+In this work, we focus on in-context learning for regression tasks, where the target labels are continuous and depend on the input features. For an in-context learning task indexed by $t$, a trained Transformer is given $\mathcal{I}_t=(\mathcal{D}_t,x_{t,M+1})$, where $\mathcal{D}_t=\{(x_{t,i},y_{t,i})\}_{i=1}^M$ consists of in-context examples and $x_{t,M+1}$ is a query\footnote{In the subsequent sections, to distinguish examples used for in-context learning, we will denote the query and query label as \(x_{t,q}\) and \(y_{t,q}\) respectively.}. We assume $x_{t,i}\in\mathbb{R}^d$ and $y_{t,i}=f_{w_{t}}(x_{t,i})$, where $f_{w_t}$ is a deterministic function parameterized by $w_t$. For each ICL instance, $w_t$ is independently sampled from a distribution $P_{w_t}$.
+
+\begin{definition}[Data Distribution]
+For task $t$, inputs follow
+\[
+x_{t,i}\sim\mathcal N(0,\Lambda),\qquad
+y_{t,i}=\langle w_t,x_{t,i}\rangle,
+\]
+and we define
+\[
+\mu_t=\mathbb E[x_{t,i}y_{t,i}],\qquad
+\Sigma_t=\operatorname{Var}(x_{t,i}y_{t,i}).
+\]
+\end{definition}
+
+one task-specific prompt corresponds to an embedding matrix $P_{t}$, defined as
+\begin{equation}
+\label{p_t}
+    P_{t}: = \begin{pmatrix}
+  x_{t,1}&\cdots  & x_{t,M} & x_{t,query} \\
+  y_{t,1}&\cdots  & y_{t,M} & 0 \\
+\end{pmatrix}\in \mathbb{R}^{D\times (M+1)}
+\end{equation}
+
+Given an embedded prompt matrix $P_t$, the Transformer produces an output sequence $\mathrm{TF}(P_t)$, and a readout function $F$ generates the prediction $\hat y_{t,q}=F(\mathrm{TF}(P))$. The goal of ICL is to ensure $\hat y_{t,q}$ approximates the target $y_{t,q}=f_{w_t}(x_{t,q})$, i.e., the label set to $0$ in $P_t$.
+
+\subsection{In-Context Continual Learning}
+Most existing theoretical analyses of ICL focus on a single task presented within a prompt, where all in-context examples are generated by the same underlying function. In this work, we are interested in understanding how ICL behaves when the prompt contains sequential tasks. In such settings, the language model processes a single long sequence using a shared attention, so information from earlier tasks may influence predictions for later tasks. 
+
+This phenomenon naturally connects ICL with continual learning, where task interference and forgetting are central concerns. Traditional continuous learning often suffers from \emph{Catastrophic Forgetting} due to parameter updates during training on different task samples. 
+
+We now extend the standard in-context learning setting to a sequential multi-task scenario. A sequence of tasks $t\in\{1,\dots,T\}$ arrives in order, and all tasks are concatenated into a single prompt processed by a shared attention.
+
+Each task $t$ provides in-context examples $\{(x_{t,i},y_{t,i})\}_{i=1}^M$ and one query $x_{t,q}$, with $x_{t,i}, x_{t,q}\sim\mathcal N(0,\Lambda),\:y_{t,i}=\langle w_t,x_{t,i}\rangle$. The task parameter $w_t$ is fixed within a task but may vary across tasks.
+
+From the in-context learning perspective, the model must infer the current task parameter $w_t$ from in-context examples and predict $y_{t,q}$ for the query token, without any parameter updates. From the continual learning perspective, the entire concatenated prompt
+\[
+\textbf{P}= \begin{pmatrix}
+    P_1 & P_2 & \cdots & P_T & Final\_Query\\
+%    p_t & p_t & \cdots & p_T & p_\tau
+\end{pmatrix}
+\]
+is processed by a single attention layer, so representations of earlier tasks may influence predictions for later tasks, potentially causing interference or forgetting. It is noteworthy that we use ‘Final\_Query’ to measure the forgetting metric, which we will formally define shortly. We explicitly denote it as $(x_{\tau,q},Y_{\tau,q})$, where $\tau$ is an index taking values in $[T]$. We vary $\tau$ to measure the model's learning or retention level for a specific $t$ after learning $T$ tasks. Correspondingly, we denote the prediction label as $\hat{Y}_{\tau,q}$ to distinguish it from $\hat{y}_{t,q}$ following each task.
+
+\textbf{Performance Evaluation.}
+\label{performance_defination}
+In the single-task ICL setting, performance is typically measured by how well the model predicts the query label based on in-context examples. In the sequential multi-task setting, we need to evaluate not only the prediction accuracy for the current task but also the effect of how much ‘knowledge’ of old tasks has been forgotten after learning the whole task. Formally, we define:
+
+\begin{definition}[Generalization]
+    For task $t$, the generalization error measures how accurately the model predicts the query label from in-context examples:
+    \[
+    G_t = \mathbb{E}[(\hat y_{t,q}-y_{t,q})^2]
+    \]
+\end{definition}
+\begin{definition}[Forgetting]
+    For task $t$, we will measure the forgetting after $T$ tasks,
+    \[
+    F_t = \mathbb{E}[(\hat{Y}_{t,q}-\hat y_{t,q})^2]
+    \]
+    where $\hat{Y}_{t,q}$ is the corresponding prediction of $x_{\tau,q}$. It quantifies the increase in error on a previously seen task after the model has processed subsequent tasks.
+\end{definition}
+
+\begin{table*}[h]
+\caption{Summary of In-Context Continual Learning Dynamics}
+\label{T:iccl}
+\vskip 0.1in
+\begin{center}
+	\begin{tabular}{p{0.25\linewidth} | p{0.32\linewidth} | p{0.32\linewidth}}
+\toprule
+\textbf{Factor} & \textbf{Effect on Generalization (Task $t$)} & \textbf{Effect on Forgetting} \\
+\midrule
+Context Length $M$ & Reduces variance from finite in-context samples; larger $M$ improves intra-task estimation & Variance-induced interference decays as $O(1/M)$; mean-induced interference remains constant for misaligned tasks\\
+\hline
+Task Similarity & High similarity between historical tasks and task $t$ reduces bias; low similarity increases bias term $\|\frac{1}{t}\sum_{s=1}^t w_s - w_t\|_2^2$ & Future tasks similar to $t$ increase interference via $\mathrm{tr}(\mu_i \mu_j^\top \Gamma^{-2} \Lambda)$; orthogonal tasks contribute minimally \\
+\hline
+Training Samples $N$ & Leveraging historical info (reduces bias) vs. resisting incorrect transfer (reduces variance/overfitting) & larger $N$ shifts forgetting to other factors; smaller $N$ lets training and sample covariance affect it \\
+\hline
+Task Ordering & N/A in single-task; in multi-task, affects aggregation of what historical tasks & Coefficients $\alpha_i(t)$ explicitly depend on task order; \\
+\bottomrule
+\end{tabular}\end{center}
+\vskip -0.1in
+\end{table*}
+\vspace{-0.1in}\section{Main Results}
+\label{theory}
+In this section, we present our main theoretical results and their implications. First, we characterize the prediction error for a specific task $t$, which captures the generalization behavior of in-context continual learning. Second, we study the forgetting behavior across tasks by quantifying how well the model retains the knowledge of each task after observing a total of $T$ tasks. 
+
+\subsection{Generalization}
+\label{4.1}
+\begin{lemma}[Prediction of Linear Self-attention under multiple tasks.]
+\label{prediction}
+Consider $T$ tasks, each providing $M$ in-context training examples 
+$\{(x_{t,i},y_{t,i})\}_{i=1}^M$, and a query input $x_{t,q}$ for task $t$.  
+Under Linear Self-Attention, the prediction is in general, for any task $1\le t\le T$,
+\[
+\hat{y}_{t,q}
+=
+x_{t,q}^\top\Gamma^{-1}
+\left(
+\frac{1}{M}\sum_{s=1}^T\sum_{i=1}^M x_{s,i}y_{s,i}
+\right).
+\]
+\end{lemma}
+\begin{remark}
+The proof could be found in Appendix~\ref{lemma4.1}. Lemma~\ref{prediction} reveals a key limitation of standard linear self-attention in the multi-task in-context setting. Since all in-context examples are aggregated uniformly, the resulting prediction does not respect task boundaries. For each task, the prediction error is independent of the task order. While such a formulation is sufficient to analyze single-task in-context learning for linear regression~\citep{pmlr-v202-li23l,ahn2023transformers,zhang2024trained}, it fails to capture phenomena that arise in multi-task prompts. Furthermore, our experiments in Section~\ref{exp:m} demonstrate that task order can have a significant impact on generalization error, which cannot be explained by linear self-attention.
+\end{remark}
+
+This observation motivates the need for a more expressive attention mechanism that can selectively control cross-task information. In the following sections, we introduce masked linear self-attention to address this limitation and enable a principled analysis of generalization and task interference.
+\begin{theorem}[Prediction Error for Task $t$]
+\label{thm-generalization}
+Consider $T$ regression tasks. For task $t$, the model observes $\{(x_{t,i},y_{t,i})\}_{i=1}^M$ with masked linear self-attention, for $\Gamma = \Lambda + \frac{1}{N}\Lambda + \frac{1}{N}tr(\Lambda)I_d$, the model prediction can be represented as:
+\[
+\hat{y}_{t,q}
+= x_{t,q}^\top\Gamma^{-1}
+\Big(\beta_{t}\sum_{s=1}^t S_s\Big),
+\]
+where $S_s=\sum_{i=1}^M x_{s,i}y_{s,i},\:\beta_{t}=\frac{1}{t(M+1)}$. Then the prediction error satisfies
+\[
+\begin{aligned}
+\mathbb{E}[(\hat y_{t,q}-y_{t,q})^2]
+=&\min_{w\in\mathbb{R}^d} \mathbb{E}(w^\top x_{t,q} - y_{t,q})^2 \\&+\frac{M}{t^2(M+1)^2}\,\sum_{s=1}^t\mathrm{tr}(\Sigma_s\,\Gamma^{-2}\Lambda)\\
++&\sum_{i=1}^d \frac{1}{\lambda_i}\Big(\frac{\lambda_i(\alpha s_i - m_i) - m_i\frac{\lambda_i + \operatorname{tr}(\Lambda)}{N}}{\lambda_i + \frac{\lambda_i + \operatorname{tr}(\Lambda)}{N}} \Big)^2
+\end{aligned}
+\]
+where $\alpha=\frac{M}{t(M+1)},s_i = v_i^\top\sum_{s=1}^t\mu_s,m_i = v_i^\top\mu_t$ and $ \Lambda =\sum_{i=1}^d\lambda_i v_iv_i^\top.$
+\end{theorem}
+
+\noindent\textbf{Prediction Error of Task $t$.} 
+Theorem~\ref{thm-generalization} provides an explicit characterization of the generalization performance for a specific task $t$, measured by the expected squared prediction error on a fresh query input $x_{t,q}$. We can separate the error into three parts. The first term represents the model's optimal linear irreducible error. The second term stems from the variance introduced by finite samples during inference, which decreases as $M$ increases. The third term is the bias, measuring the deviation between different tasks. When $t=1$, the bias term reduces to the single-task setting, recovering existing theoretical results on in-context learning for linear regression. 
+
+In contrast to linear self-attention, this prediction yields a task-dependent weight $\beta_t$, which enables order-sensitive generalization behavior and lays the foundation for our subsequent analysis of forgetting. Based on Theorem~\ref{thm-generalization}, we will provide insights on the following aspects.
+
+\noindent \textbf{(1) \textit{Context Length.}} \textbf{Long context improves generalization only beyond a task-alignment threshold.}
+When the length of prompts seen during training $N$ is large, $\Gamma^{-1} \approx \Lambda^{-1}$, considering the simplest case that $\Lambda = I_d$, the second error term will be 
+\begin{equation*}
+    \frac{M}{t^2(M+1)^2}\sum_{s=1}^t \mathrm{tr}(\Sigma_s\,\Gamma^{-2}\Lambda)
+    = \frac{(d+1)M}{t^2(M+1)^2}\sum_{s=1}^t \|w_s\|_2^2 .
+\end{equation*}
+If we take expectation on $w_i\sim N(0,I_d)$, it is further simplified to $\frac{d(d+1)M}{t(M+1)^2}$. This analysis highlights the role of context length in shaping in-context learning performance, consistent with recent theoretical and empirical studies on ICL~\citep{zhang2024trained,kang2025incontextlearningperformcontinual,Lu_2025}. 
+
+In the single-task setting, a larger $M$ enhances ICL capability and reduces error. In multi-task scenarios, increasing $M$ theoretically does reduce error. However, as we will see in the remaining analysis of task similarity, when tasks are dissimilar, blindly increasing the context length for individual tasks can lead to negative effects. As a result, the benefit of longer context emerges only beyond a certain threshold, whereas below this threshold, additional context can mislead the model and degrade generalization.
+
+\noindent \textbf{(2) \textit{Task Similarity.}} \textbf{Context helps only when historical tasks are aligned with the target task.} Similarly, when both the test prompt length $M$ and the prompt length observed during training $N$ are large, we have $\Gamma^{-1} \approx \Lambda^{-1}$. 
+Under this regime, the bias term in Theorem~\ref{thm-generalization} simplifies to
+{\small
+\begin{equation*}
+    \sum_{i=1}^d \frac{1}{\lambda_i}
+    \Big(
+    \frac{\lambda_i(\alpha s_i - m_i) - m_i\frac{\lambda_i + \operatorname{tr}(\Lambda)}{N}}
+         {\lambda_i + \frac{\lambda_i + \operatorname{tr}(\Lambda)}{N}}
+    \Big)^2
+    = \Big\|\frac{1}{t}\sum_{s=1}^t w_s - w_t\Big\|_2^2 .
+\end{equation*}
+}
+When tasks are similar, i.e., $\mu_s$ is close to $\mu_t$, the $\alpha s_i$ is close to $m_i$, rendering the bias term small. In this regime, the overall prediction error is dominated by the variance term, and increasing the number of in-context examples $M$ yields clear performance gains.
+
+In contrast, when tasks differ significantly and historical information is misaligned with the target task, the bias term dominates the error. In this case, simply increasing the context length $M$ does not necessarily improve generalization; instead, it can introduce additional bias.
+
+\noindent \textbf{(3) \textit{Training Samples.}} \textbf{More training data does not always imply better in-context generalization.}
+The $\tfrac{1}{N}$ term in $\Gamma$ acts as an implicit regularization mechanism. 
+By adjusting $N$, the model trades off between historical information to reduce bias and suppressing incorrect transfer caused by task discrepancies, which manifests as increased variance and overfitting to cross-task noise.
+
+When $N$ is sufficiently large ($N \to \infty$), we have $\Gamma \approx \Lambda$, and the bias term is primarily governed by the discrepancy $\alpha s_i - m_i$. 
+In contrast, as $N \to 0^+$, the bias term converges to $\sum_i m_i^2 / \lambda_i$, which depends solely on the target task component and corresponds to ignoring historical information altogether. 
+This behavior indicates that, under our setting, increasing $N$ is not monotonically beneficial.
+
+Indeed, for each coordinate $i$, one can derive an analytical stationary point at which the bias vanishes,
+\[
+N_i^* = \frac{m_i\big(\lambda_i + \mathrm{tr}(\Lambda)\big)}{\lambda_i(\alpha s_i - m_i)} .
+\]
+These stationary points depend on multiple factors, including the input distribution and the alignment between tasks. 
+However, such quantities are typically unknown in advance during training, making it difficult to determine an optimal number of training samples from theoretical considerations alone.
+
+\subsection{Forgetting}
+\label{sec:forgetting}
+In the following subsection, we provide the interference expression for forgetting and analyze how interference from past and future tasks leads to forgetting in in-context continual learning.
+\begin{theorem}[Interference Between Task-$t$ Query and Final Query]
+\label{forgetting}
+After all $T$ tasks, the final prediction is
+\[
+\hat{Y}_{t,q}
+= x_{t,q}^\top\Gamma^{-1}
+\Big(
+\frac{1}{T(M+1)+1}
+\sum_{s=1}^{T} S_s
+\Big).
+\]
+The difference from the task-$t$ prediction can be written as
+\[
+\hat{Y}_{t,q}-\hat{y}_{t,q}
+=
+x_{t,q}^\top\Gamma^{-1}
+\Big(
+\sum_{i=1}^t c_t S_i
++\sum_{i=t+1}^T d S_i
+\Big),
+\]
+where
+\[
+c_t=-\frac{(T-t)M + (T+1-t)}{t(M+1)(TM+T+1)},
+\qquad
+d=\frac{1}{TM+T+1}.
+\]
+Define
+\[
+\alpha_i(t)=
+\begin{cases}
+c_t, & i\le t,\\[4pt]
+d, & i> t.
+\end{cases}
+\]
+
+We obtain the interference error
+\[
+\begin{aligned}
+\mathbb{E}[(\hat{Y}_{t,q}-\hat y_{t,q})^2]
+=&\sum_{i=1}^T \alpha_i^2(t)\,\mathrm{tr}\!\big[(M\Sigma_i+M^2\mu_i\mu_i^\top)\Gamma^{-2}\Lambda\big]
+\\&+M^2\!\sum_{\substack{i,j=1\\i\ne j}}^T\alpha_i(t)\alpha_j(t)\,\mathrm{tr}(\mu_i\mu_j^\top\Gamma^{-2}\Lambda). 
+\end{aligned}
+\]
+\end{theorem}
+\begin{remark}
+Theorem~\ref{forgetting} shows that forgetting arises from the \textbf{reweighting of task contributions} rather than loss of information about task $t$ itself.
+Past tasks ($i\le t$) receive negative coefficients $c_t$, while future tasks ($i>t$) receive positive coefficients $d$.
+This demonstrates that representations of task $t$ are actively offset by other tasks, reflecting an intrinsic structural property of in-context continual learning.
+\end{remark}
+
+Furthermore, the above expression reveals two qualitatively distinct sources of interference:
+\begin{itemize}
+\item \emph{intra-task terms}, captured by $\mathrm{tr}(\Sigma_i\Gamma^{-2}\Lambda)$ and $\mathrm{tr}(\mu_i\mu_i^\top\Gamma^{-2}\Lambda)$, which reflect estimation noise within each task;
+\item \emph{inter-task mean interaction terms}, given by $\mathrm{tr}(\mu_i \mu_j^\top\Gamma^{-2}\Lambda)$ for $i\neq j$, which quantify interference induced by misalignment across different tasks.
+\end{itemize}
+Based on Theorem~\ref{thm-generalization}, we will provide insights on the following aspects.
+
+\noindent \textbf{(1) \textit{Context Length.}} \textbf{Increasing context length reduces variance-induced interference, but forgetting persists due to irreducible mean misalignment across tasks.}
+Although the variance-related terms scale linearly with the context length $M$, they are multiplied by coefficients $\alpha_i^2(t)=O(1/M^2)$, resulting in an overall contribution that decays as $O(1/M)$.
+This implies that increasing context length effectively suppresses estimation noise within each task.
+
+In contrast, all mean-related terms scale as $M^2$ but are weighted by $\alpha_i(t)\alpha_j(t)=O(1/M^2)$.
+Consequently, their contributions remain bounded and converge to constants as $M$ grows.
+These limiting values depend on the relative alignment between task means and the task ordering.
+
+This separation highlights a fundamental distinction: while longer contexts improve intra-task estimation accuracy, they cannot eliminate interference arising from task mean misalignment.
+As a result, forgetting persists asymptotically even in the long-context regime.
+
+\noindent \textbf{(2) \textit{Task Similarity.}} \textbf{Forgetting is amplified by learning future tasks that are statistically similar to the current one.}
+Theorem~\ref{forgetting} reveals that the severity of forgetting is governed by the alignment among task means $\{\mu_i\}$. When task $t$ is similar to subsequent tasks, the interaction term $\mathrm{tr}(\mu_i\mu_j^\top\Gamma^{-2}\Lambda)$ becomes large, leading to strong interference. In contrast, if future tasks are statistically orthogonal to task $t$, their contribution to the interference error is negligible.
+
+This observation indicates that forgetting in in-context continual learning is inherently task-dependent: learning future tasks aligned with past ones amplifies forgetting, whereas learning statistically irrelevant tasks can largely preserve prior performance.
+
+\noindent \textbf{(3) \textit{Task Ordering.}} \textbf{Forgetting is inherently order-dependent, even when the set of tasks remains unchanged.} Since the mixed interaction terms\footnote{For details on which specific task interactions correspond to different coefficients, please refer to Corollary~\ref{d_forgetting}} are scaled by $c_t/(TM+T+1), c_t^2$, their contribution increases with both the number of tasks and the context length. This implies that forgetting is influenced not only by task similarity, but also by the ordering of tasks.
+
+In particular, sequences in which later tasks are misaligned with earlier ones induce stronger inter-task interference. Theorem~\ref{forgetting} therefore provides a precise mathematical explanation for the order-dependent forgetting phenomena commonly observed in in-context continual learning.
+
+\begin{corollary}
+\label{aver}
+Let $A_i \triangleq \mathrm{tr}\!\big[(M\Sigma_i+M^2\mu_i\mu_i^\top)\Gamma^{-2}\Lambda\big]$ and $B_{ij} \triangleq M^2\,\mathrm{tr}(\mu_i\mu_j^\top\Gamma^{-2}\Lambda).$
+Recall Theorem~\ref{forgetting} for each $t$, we have $\alpha_i(t)$.
+For convenience define
+\[
+\bar{\alpha}_i \triangleq \frac{1}{T}\sum_{t=1}^T \alpha_i(t)^2,
+\qquad
+\bar{\alpha} _{ij}\triangleq \frac{1}{T}\sum_{t=1}^T \alpha_i(t)\alpha_j(t),\quad i\ne j.
+\]
+
+Then the average interference error takes
+\[
+\frac{1}{T}\sum_{t=1}^T 
+\mathbb{E}\big[(\hat{Y}_{t,q}-\hat y_{t,q})^2\big]
+=
+\sum_{i=1}^T \bar{\alpha}_i\,A_i
++
+\sum_{\substack{i,j=1\\i\ne j}}^T \bar{\alpha} _{ij}\,B_{ij}.
+\]
+
+Moreover, $S_i$ and $S_{ij}$ admit explicit forms.  
+For each $1\le i\le T$,
+\[
+\bar{\alpha}_{i}=\frac{1}{T}\Big((i-1)d^2 + \sum_{t=i}^T c_t^2\Big).
+\]
+
+For $i<j$,
+\[
+\bar{\alpha}_{ij}
+=\frac{1}{T}\Big((i-1)d^2 
++ \sum_{t=i}^{j-1} c_t d
++ \sum_{t=j}^T c_t^2\Big),
+\]
+and for $i>j$, symmetry gives $\bar{\alpha} _{ij} = \bar{\alpha} _{ji}$.
+\end{corollary}
+
+While the previous results characterize interference at a fixed task-query pair, continual learning typically evaluates forgetting by averaging performance across tasks. The corollary provides the average forgetting in ICL. The averaged error aligns with the standard definition of forgetting in continual learning~\cite{pmlr-v178-evron22a,pmlr-v202-lin23f}, where performance degradation is evaluated by aggregating over tasks rather than conditioning on a specific task.
+
+The different coefficients $\bar{\alpha}_{i}, \bar{\alpha}_{ij}$ reveal that task ordering influences forgetting not only at specific query positions but also in an average sense across all tasks. Unlike $\alpha_i(t)$, which depends on a particular query task $t$, these averaged coefficients are independent of the query position and thus quantify the typical contribution of each task to forgetting across the entire learning process, indicating that interference is a global property of in-context continual learning.
+
+
+
+\subsection{Summary of Generalization and Forgetting Insights}
+\label{sec:summary}
+
+The preceding analysis of masked linear self-attention in in-context continual learning allows us to summarize key factors affecting generalization and forgetting.
+
+\begin{proposition}[Summary of In-Context Continual Learning Dynamics]
+\label{prop:summary}
+Let $M$ be the number of in-context examples per task, $N$ the prompt length seen during training, and $\{\mu_i\}$ the task means. We summarize the effects of various factors on generalization and forgetting in Table~\ref{T:iccl}.
+
+\noindent \textbf{Remark.}  
+This proposition consolidates the insights from Theorems~\ref{thm-generalization} and~\ref{forgetting}, as well as Corollary~\ref{d_forgetting}. 
+Generalization errors decompose into irreducible, variance, and bias terms, which are affected by context length, task similarity, and training prompt length.  
+Forgetting emerges structurally from reweighting of task contributions, and persists asymptotically when task means are misaligned, regardless of context length.
+\end{proposition}
+
+\vspace{-0.1in}\section{Experiments}
+In this section, we empirically validate our theoretical findings using more sophisticated transformer models. We study how context length, task similarity and task ordering affect in-context continual learning, and assess the extent to which our predictions about generalization and forgetting align with empirical performance.
+
+\noindent \textbf{Experimental Setup.}
+We utilize a standard decoder-style GPT-2 architecture consisting of 12 layers, 8 attention heads, and an embedding dimension of 256. Furthermore, to validate the scalability of our conclusions across different model sizes, we conduct additional verifications on a tiny GPT-2 configuration (3 layers, 2 heads, embedding dimension of 64). We evaluate these transformers on linear regression tasks with mean-zero Gaussian inputs and fixed identity covariance, following the training procedure of~\citet{garg2022what} where the model learns in-context learning from diverse task instances. 
+
+Each task is defined by a task-specific weight vector $w \in \mathbb{R}^d$, and task identity is implicit, determined by example ordering in the prompt sequence. During inference, all model parameters remain fixed, and adaptation occurs solely through the attention mechanism. We generate multiple sequences of tasks and report mean squared error (MSE) on query points, including per-task prediction error, forgetting error and average interference error, averaged over multiple batches with standard deviations. Further experimental details, including model architectures, convergence losses, and comprehensive tabular results across various scales, are provided in Appendix~\ref{app:exp_details}.
+
+\subsection{Effect of Context Length $M$}
+\label{exp:m}
+According to Theorem~\ref{thm-generalization}, the variance term should shrink for fixed task position $t$. Increasing $M$ also reduces estimation noise in the sample covariance, improving the effective estimator used by the attention mechanism. However, the bias term also reveals that beyond a certain regime, increasing context length can amplify systematic inter-task interference, potentially worsening generalization when task means are misaligned.
+
+\begin{figure}[h]
+% \vspace{-0.1in}
+\begin{center}
+\centerline{
+\begin{tabular}{ccc}
+\includegraphics[width=0.5\columnwidth]{figs/exp_6_2_normal_plot.pdf}&
+\includegraphics[width=0.5\columnwidth]{figs/exp_6_2_same_w_plot.pdf}
+\end{tabular}
+}
+\caption{Per-Task MSE vs Context Length M.}
+\label{fig:M}
+\end{center}
+\vspace{-0.1in}
+\end{figure}
+
+\noindent \textbf{Results.} \emph{The effect of context length $M$ on prediction error is task-dependent, reflecting a trade-off between variance reduction and inter-task interference.} In the single-task setting (Task 1), increasing the number of in-context samples $M$ consistently reduces the prediction error, reflecting the standard variance reduction under finite-sample estimation. In the multi-task setting, however, the effect of $M$ is no longer monotonic (Figure~\ref{fig:M}). Prediction error results from a trade-off between variance reduction from additional in-context examples and bias induced by task dissimilarity and inter-task interference. When $M$ is small, interference dominates, and increasing $M$ can even increase error; as $M$ grows, variance reduction becomes dominant, yielding improved performance.
+
+Consistent with our theoretical predictions, the variance term decreases with $M$ approximately as $\mathcal{O}(M/(M+1)^2)$ for larger $M$, whereas the interference term persists, depending on the alignment of task-specific parameters. This explains why the benefit of increasing $M$ eventually plateaus.
+
+To systematically validate our theoretical bias-variance-interference decomposition (Theorem~\ref{thm-generalization}), we performed a quantitative comparison between the theoretically predicted MSE and the empirical MSE actually observed in the GPT-2 model. As detailed in Appendix~\ref{app:exp_details}, the structural inflection points are highly consistent despite architectural differences. For subsequent tasks, the empirical error exhibits a significant peak at intermediate context lengths (e.g., at $M=3$) before recovering. This directly validates our claim: when historical tasks are misaligned, expanding context initially injects systematic bias that overwhelms variance reduction.
+
+Figure~\ref{fig:M} further illustrates the role of task similarity. Among the five tasks, $\{1,3,5\}$ form one similarity cluster and $\{2,4\}$ form another. Tasks 3, 4, and 5 benefit from their similarity to preceding tasks, resulting in lower error, a phenomenon reminiscent of data-replay methods in continual learning~\cite{rolnick2019experience,ding2026provable}.
+
+\subsection{Task similarity}
+While the previous experiment varied the amount of historical context, we now isolate the role of task similarity by holding the context length fixed. Task similarity directly controls the magnitude of the bias term: when tasks are well aligned, previous context reduces error through variance reduction, whereas misaligned tasks introduce systematic interference. To systematically control this, we parameterize the similarity by the angle $\theta$ between the task-specific weight vectors.
+
+\begin{figure}[ht]
+\vspace{-0.1in}
+\begin{center}
+\centerline{
+\begin{tabular}{cc}
+\includegraphics[width=0.45\columnwidth]{figs/exp_6_3_task_similarity_normalized_plot.pdf}&
+\includegraphics[width=0.45\columnwidth]{figs/exp_6_3_task_similarity_per_task_normalized_plot.pdf}
+\end{tabular}
+}
+\caption{Per-Task MSE vs Task Similarity.}
+\label{fig:M}
+\end{center}
+\vspace{-0.1in}
+\end{figure}
+
+\noindent \textbf{Results.}
+Our results clearly validate the theoretical bias-variance trade-off. When $\theta$ is small, corresponding to high task similarity, historical tasks provide positive transfer and reduce prediction error. As $\theta$ increases, the bias term grows and systematic interference dominates, leading to negative transfer where incorporating dissimilar historical tasks increases the MSE. These results demonstrate that task similarity is a decisive factor in determining whether historical context is beneficial or harmful, consistent with the bias characterization in Theorem~\ref{thm-generalization}.
+
+Furthermore, this controlled setting provides a crucial theoretical bridge to understanding realistic LLM behaviors. While our synthetic construction allows for a smooth interpolation of $\theta$, heterogeneous natural language tasks are typically mapped to nearly orthogonal representations in the embedding space after large-scale pretraining. This inherently places real-world multi-task prompting in the large $\theta$ regime of our framework, mathematically explaining why systematic interference and negative transfer naturally dominate when dealing with diverse NLP tasks.
+
+\subsection{Task Order Sensitivity}
+Theorem~\ref{forgetting} reveals that forgetting in in-context learning arises from attention reweighting rather than information loss. Because adaptation occurs entirely during a single forward pass without parameter updates, the entire sequence of tasks is perfectly preserved in the context window. Thus, forgetting intrinsically arises from how the attention mechanism aggregates this history. While the mask provides order, it induces systematic bias by aggregating historical tasks with fixed, decaying weights.
+
+\noindent \textbf{Results.}
+Our experiments demonstrate clear order-dependent forgetting: tasks that appear earlier in the sequence experience greater forgetting after processing subsequent tasks, consistent with the theoretical prediction that attention weights decay with distance. We observe that the forgetting pattern depends on both the task position and the specific task ordering, validating the interference mechanism described in Theorem~\ref{forgetting}. The results show that forgetting arises intrinsically from attention-based aggregation, even without any parameter updates, confirming that in-context continual learning exhibits genuine forgetting behavior.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width = \linewidth]{figs/exp_4_2_variation_3_task_order_plot.pdf}
+    \caption{Task Order vs. Forgetting}
+    \vspace{-0.1in}
+\end{figure}
+
+\subsection{Generalization to Non-linear Tasks}
+\label{exp:nonlinear}
+To demonstrate that our theoretical insights are not limited to simplified linear settings, we extend our experiments to more complex function classes, including sparse linear regression and two-layer ReLU neural networks ($f(x)=\sum_{i=1}^{r}\alpha_{i}\sigma(w_{i}^{\top}x)$). 
+
+As detailed in the comprehensive tabular results in Appendix~\ref{app:exp_details}, increasing the context length $M$ consistently reduces prediction error for the first task. However, for subsequent tasks, increasing $M$ initially improves performance but eventually causes the error to rise sharply. For instance, in sparse linear regression, the normalized MSE for Task 5 jumps catastrophically to 0.9905 at $M=19$. This explicitly confirms our theoretical finding that aggregating extended historical contexts from heterogeneous tasks inevitably induces systematic bias and provable negative transfer. It holds robustly even in highly non-linear environments.
+
+\subsection{Validation on Real-world LLMs}
+\label{exp:realworld}
+To validate our results in realistic multi-task prompting scenarios, we designed an ICCL evaluation pipeline using a modern instruction-tuned large language model, Qwen2.5-1.5B-Instruct~\cite{qwen2.5}. We selected two heterogeneous text classification tasks: SST-2 (binary sentiment classification~\cite{socher2013recursive}, Task A) and AG News (four-class topic classification~\cite{zhang2015character}, Task B). We constructed prompts by concatenating $M$ in-context examples from Task A, followed by $M$ examples from Task B, requiring the model to generate predictions in a single forward pass.
+
+\begin{table}[h]
+\centering
+\caption{ICCL Evaluation on Qwen2.5-1.5B-Instruct.}
+\label{tab:realworld_llm}
+\resizebox{\columnwidth}{!}{%
+\begin{tabular}{lcccccc}
+\toprule
+\multirow{2}{*}{$M$} & \multicolumn{3}{c}{\textbf{Task B (Negative Transfer)}} & \multicolumn{3}{c}{\textbf{Task A (Forgetting)}} \\
+\cmidrule(lr){2-4} \cmidrule(lr){5-7}
+ & Baseline & ICCL & $\Delta$ & Baseline & Final & $\Delta$ \\
+\midrule
+1  & 0.736 & 0.580 & -0.156 & 0.934 & 0.472 & -0.462 \\
+3  & 0.702 & 0.630 & -0.072 & 0.938 & 0.468 & -0.470 \\
+5  & 0.716 & 0.670 & -0.046 & 0.948 & 0.496 & -0.452 \\
+19 & 0.668 & 0.684 & +0.016 & 0.922 & 0.536 & -0.386 \\
+\bottomrule
+\end{tabular}%
+}
+\end{table}
+
+Table~\ref{tab:realworld_llm} summarizes the phenomena of negative transfer and forgetting. When $M$ is small, the historical context from Task A heavily biases the attention mechanism, causing severe negative transfer that drops Task B's accuracy by over 15\% compared to its baseline. As $M$ increases, the variance reduction effect of the relevant context emerges, allowing the model to gradually isolate task interference and recover to baseline performance levels by $M=19$.
+
+Furthermore, evaluating the model's retention of Task A at the very end of the concatenated prompt demonstrates catastrophic degradation. Even though the LLM's weights were entirely frozen, accuracy on Task A dropped from 0.934 to 0.472 at $M=1$ after introducing Task B. Although increasing $M$ mitigates some variance-induced interference, a severe baseline level of forgetting persists asymptotically due to the irreducible mean misalignment between the two distinct NLP tasks, exactly as predicted by Theorem~\ref{forgetting}. 
+
+Comprehensive tabular results, detailed experimental setups, and further ablation studies across different architectures are provided in Appendix~\ref{app:exp_details}.
+
+\vspace{-0.1in}\section{Conclusion}
+In this work, we introduce the first theoretical framework for in-context continual learning, analyzing how shared attention processes task sequences. By quantifying prediction error in masked linear self-attention, we identify conditions for positive versus negative transfer. We show that attention aggregation inherently causes interference—specifically order sensitivity, bias, and forgetting—even without parameter updates. Validated by experiments, these findings reveal the fundamental limits of inference-time adaptation and necessitate principled strategies for update-free continual learning.
+
+\section*{Impact Statement}
+This paper presents work whose goal is to advance the field of Machine Learning. There are many potential societal consequences of our work, none of which we feel must be specifically highlighted here.
+
+% Acknowledgements should only appear in the accepted version.
+\section*{Acknowledgements}
+This work is supported in part by the MBZUAI Research Fund BF0100. We also thank the anonymous reviewers for their valuable feedback and constructive suggestions.
+
+\bibliography{reference}
+\bibliographystyle{icml2026}
+
+\newpage
+\appendix
+\onecolumn
+\vspace{-0.1in}\section{Pre-training Procedure}
+In this work, we consider the task of in-context learning linear predictors. Following the assumptions of \citet{zhang2024trained}, we employed the same training design, including embedding matrices and initialization to obtain results regarding model parameter convergence under gradient flow. 
+
+We will assume training prompts are sampled as follows. Let $\Lambda$ be a positive definite covariance matrix.  Each training prompt, indexed by $\tau \in \mathbb{N}$, takes the form of $P_\tau = (x_{\tau, 1}, h_\tau(x_{\tau_1}), \dots, x_{\tau, N}, h_\tau(x_{\tau, N}), x_{\tau, q})$, where task weights $w_\tau \overset{iid}{\sim} \mathcal{N}(0, I_d)$, inputs $x_{\tau, i}, x_{\tau, q} \overset{iid}{\sim} \mathcal{N}(0, \Lambda)$, and labels $h_{\tau}(x) = w^\top_\tau x$.  
+ 
+Each prompt corresponds to an embedding matrix $E_\tau$, formed using the transformation~\eqref{p_t}:
+\begin{equation*}
+    E_\tau := \begin{pmatrix}
+    x_{\tau,1} & x_{\tau,2} & \cdots & x_{\tau,N} & x_{\tau,q} \\
+    w_\tau^\top x_{\tau,1} & w_\tau^\top x_{\tau,2} & \cdots & w_\tau^\top x_{\tau,N} & 0
+\end{pmatrix} \in \mathcal{R}^{(d+1)\times (N+1)}.
+\end{equation*}
+The empirical risk over $B$ independent prompts is defined as
+\begin{equation}\label{eqn:emp_loss_maintext}
+    \widehat L(\theta) = \frac{1}{2B} \sum_{\tau=1}^B \bigg(\widehat y_{\tau,q} - w_\tau^\top x_{\tau,q}\bigg)^2.
+\end{equation}
+We consider the behavior of gradient flow-trained networks over the population loss induced by the limit of infinite training tasks $B\to \infty$:
+\begin{equation}\label{eqn:population_loss}
+    L(\theta) = \lim_{B\to \infty} \widehat L(\theta) = \frac{1}{2} \mathbb{E}_{w_\tau, x_{\tau,1}, \cdots, x_{\tau,N}, x_{\tau,q}} \left[ (\widehat y_{\tau,q} - w_\tau^\top x_{\tau,q})^2 \right]
+\end{equation}
+Above, the expectation is taken w.r.t. the covariates $\{x_{\tau,i}\}_{i=1}^N \cup \{x_{q}\}$ in the prompt and the weight vector $w_\tau$, i.e. over $x_{\tau,i},x_q \overset{iid}{\sim} \mathcal{N}(0, \Lambda)$ and $w_{\tau} \sim \mathcal{N}(0,I_d)$.  
+Gradient flow captures the behavior of gradient descent with an infinitesimal step size and has dynamics given by the following differential equation:
+\begin{equation}\label{eqn:gf}
+    \frac{\mathrm{d}}{\mathrm dt} \theta = - \nabla L(\theta).
+\end{equation}
+
+We will consider gradient flow with an initialization that satisfies the following and cite their theorem here. More details please refer to \citet{zhang2024trained}.
+\begin{assumption}[Initialization]
+\label{initialization}
+    Let $\sigma>0$ be a parameter, and let $\Theta\in \mathbb{R}^{d\times d}$ be any matrix satisfying $\|\Theta\Theta^\top\|_{F}=1$ and $\Theta\Lambda\ne0_{d\times d}$. We assume
+    \begin{equation}
+        W(0) = \sigma\begin{pmatrix}
+  0_{d\times d}&0_d \\
+  0^\top_d&1
+\end{pmatrix},\quad V(0)=\sigma\begin{pmatrix}
+  \Theta\Theta^\top&0_d \\
+  0^\top_d&0
+\end{pmatrix}
+    \end{equation}
+\end{assumption}
+
+\begin{theorem}[Convergence and limits]
+\label{limit}
+    Consider the gradient flow of the linear self-attention network defined in Section~\ref{lsa}. Suppose the initialization satisfies Assumption~\ref{initialization} with initialization scale $\sigma > 0$ satisfying $\sigma^2\|\Gamma\|_{op}\sqrt{d}<2$ where we have defined
+    \begin{equation*}
+        \Gamma:=(1+\frac{1}{N})\Gamma + \frac{1}{N}tr(\Lambda)I_d\in \mathbb{R}^{d\times d}
+    \end{equation*}
+    Then the gradient flow converges to a global minimum of the population loss. Moreover, $W$ and $V$ converge to $W^*$ and $V^*$ respectively, where
+    \begin{equation}
+    W^* = a^{\frac{1}{4}}\begin{pmatrix}
+  0_{d\times d}&0_d \\
+  0^\top_d&1
+\end{pmatrix},\quad V^* = a^{-\frac{1}{4}}\begin{pmatrix}
+  \Gamma^{-1}&0_d \\
+  0^\top_d&0
+\end{pmatrix}
+    \end{equation}
+    where $a = tr(\Gamma^{-2})$.
+\end{theorem}
+
+\begin{remark}[Training Effect]
+In our theoretical analysis, the effect of training is primarily reflected in the final learned parameter matrix, which we characterize in Theorem~\ref{limit}. As discussed in Section~\ref{4.1}, the dominant factor influencing this process is the training samples. 
+
+Taking generalization as an example, in Section~\ref{4.1} we provide a detailed analysis of how the number of samples affects model performance. In general, larger sample sizes do not always lead to better performance. In our experimental observations, however, with the number of training steps set to 500k, the final loss tends to stabilize regardless of the number of training samples, as long as it exceeds a certain threshold. To further support our theoretical findings, we present the training loss curve, which shows that under the curriculum learning we used in the initial training step, the loss initially decreases and then increases as the number of samples grows. 
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.5\linewidth]{figs/overall.png}
+    \caption{Training Loss Curve}
+    \label{fig:training}
+\end{figure}
+
+We also emphasize that the obtained parameter is derived under gradient flow dynamics with appropriate initialization, yielding a closed-form analytical result. In practical training scenarios, however, the learning process is affected by additional factors, such as the learning rate, model size and the number of attention heads, etc. We leave it to future work.
+\end{remark}
+
+\vspace{-0.1in}\section{Useful Lemma and Corollary}
+\label{useful_lemma}
+\begin{lemma}
+    Define $S_s=\sum_{i=1}^M x_{s,i}y_{s,i}$ and $\mu_t=\mathbb E[x_{t,i}y_{t,i}],\Sigma_t=\operatorname{Var}(x_{t,i}y_{t,i})$, then we have
+\[
+\mathbb{E}[S_i S_j^\top]
+=
+\begin{cases}
+M\Sigma_i+M^2\mu_i\mu_i^\top,& i=j,\\[4pt]
+M^2\mu_i\mu_j^\top,& i\ne j,
+\end{cases}
+\]
+\end{lemma}
+
+\begin{lemma}
+    For $x\sim \mathcal{N}(\mu,\Lambda),\Lambda\in \mathbb{R}^{d\times d}$ and a matrix $A\in \mathbb{R}^{d\times d}$, we have the first four moment as follows:
+    \begin{align*}
+        \mathbb{E}(x) = \mu, \\
+        \mathbb{E}(xx^\top) = \Lambda,\\
+        \mathbb{E}(\|w\|^2) = \|\mu\|^2 + \operatorname{Tr}(\Lambda),
+    \end{align*}
+\end{lemma}
+
+\begin{corollary}[Forgetting Decomposition]
+\label{d_forgetting}
+Separating the Theorem~\ref{forgetting} from tasks $1\le i\le t$ and $t<i\le T$ yields
+\[
+\small\small
+\begin{aligned}
+&\mathbb{E}[(\hat{Y}_{t,q}-\hat y_{t,q})^2]\\
+=&\;
+Mc_t^2\sum_{i=1}^t \mathrm{tr}(\Sigma_i\Gamma^{-2}\Lambda)
++\frac{M}{(TM+T+1)^2}\sum_{i=t+1}^T \mathrm{tr}(\Sigma_i\Gamma^{-2}\Lambda)
+\\
+&+M^2 c_t^2\sum_{i=1}^t h_{i,i} +\frac{M^2}{(TM+T+1)^2}\sum_{i=t+1}^T h_{i,i}
+\\
+&+M^2c_t^2\!\sum_{\substack{i,j=1\\i\ne j}}^t 
+h_{i,j}
++\frac{M^2}{(TM+T+1)^2}\!
+\sum_{\substack{i,j=t+1\\i\ne j}}^Th_{i,j}
+\\
+&\frac{M^2c_t}{TM+T+1}\sum_{1\le i <t <j\le T}h_{i,j} +\frac{M^2c_t}{TM+T+1}\sum_{1\le j <t <i\le T}h_{i,j}
+\end{aligned}
+\]
+where $h_{i,j} = \mathrm{tr}(\mu_i\mu_j^\top\Gamma^{-2}\Lambda)$ induces an inner product between task means.
+\end{corollary}
+
+\begin{theorem}[Prediction Error for Task $t$ after T Tasks]
+We take the same notation in Theorem~\ref{thm-generalization}, then the prediction error for task $t$ satisfies
+\[
+\begin{aligned}
+\mathbb{E}[(\hat Y_{t,q}-y_{t,q})^2]
+=&\min_{w\in\mathbb{R}^d} \mathbb{E}(w^\top x_{t,q} - y_{t,q})^2 \\&+\frac{M}{(TM+T+1)^2}\,\sum_{s=1}^T\mathrm{tr}(\Sigma_s\,\Gamma^{-2}\Lambda)\\
++&\sum_{i=1}^d \frac{1}{\lambda_i}\Big(\frac{\lambda_i(\beta s_i - m_i) - m_i\frac{\lambda_i + \operatorname{tr}(\Lambda)}{N}}{\lambda_i + \frac{\lambda_i + \operatorname{tr}(\Lambda)}{N}} \Big)^2
+\end{aligned}
+\]
+where $\beta=\frac{M}{TM+T+1}, \Lambda =\sum_{i=1}^d\lambda_i u_iu_i^\top,s_i = u_i^\top\sum_{s=1}^T\mu_s,m_i = u_i^\top\mu_t$.
+\end{theorem}
+
+\begin{corollary}[Average Prediction Error after T Tasks]
+\label{ave_pre}
+\[
+\begin{aligned}
+\frac{1}{T}\sum_{t=1}^T 
+\mathbb{E}\big[(\hat{Y}_{t,q}-y_{t,q})^2\big]
+=&\frac{1}{T}\sum_{t=1}^T\min_{w\in\mathbb{R}^d} \mathbb{E}(w^\top x_{t,q} - y_{t,q})^2\\ +&\frac{M}{(TM+T+1)^2}\,\sum_{s=1}^T\mathrm{tr}(\Sigma_s\,\Gamma^{-2}\Lambda)\\
++&\sum_{i=1}^d \frac{1}{\lambda_i}\Big[(\bar{m}_i - \frac{\lambda_i\beta s_i}{d_i})^2 + \frac{1}{T}\sum_{t=1}^T(m_{i,t} - \bar{m}_i)^2\Big]\\
+\end{aligned}
+\]
+where $d_i = \lambda_i + \frac{\lambda_i+\operatorname{tr}(\Lambda)}{N}, m_{i,t} = u_i^\top\mu_t,\bar{m}_i = \frac{1}{T}\sum_{t=1}^Tm_{i,t}$.
+\end{corollary}
+
+
+\vspace{-0.1in}\section{Proof of Lemma~\ref{prediction}}
+\label{lemma4.1}
+\textit{Proof.} 
+Recall the definition of Linear Self-Attention,
+\[
+f_{\mathrm{LSA}}(P;\theta)
+= P + WP\frac{P^\top VP}{\rho},
+\]
+so, we have
+\[
+\hat{y}_{t,q} = [f_{\mathrm{LSA}}(P;\theta)]_{(d+1),(t(M+1))}.
+\]
+
+Since the prediction takes only the right-bottom entry of the token matrix output by the LSA layer, actually only part of $W$ and $V$ affect the prediction. To see how, let us denote
+\[
+W = \begin{pmatrix}
+    W_{11} & w_{12} \\
+    w_{21}^\top & w_{22}
+\end{pmatrix}\in \mathbb{R}^{(d+1)\times (d+1)},\qquad 
+V = \begin{pmatrix}
+    V_{11} & v_{12} \\
+    v_{21}^\top & v_{22}
+\end{pmatrix}\in \mathbb{R}^{(d+1)\times (d+1)}
+\]
+where $ W_{11}\in \mathbb{R}^{d\times d},w_{12},w_{21}\in \mathbb{R}^{d},  w_{22}\in \mathbb{R}$ and $V_{11}\in \mathbb{R}^{d\times d},v_{12},v_{21}\in \mathbb{R}^{d}, v_{22}\in \mathbb{R}$. Then the prediction query is 
+\[
+\hat{y}_{t,q} = \begin{pmatrix}
+    w_{21}^\top & w_{22}
+\end{pmatrix}\cdot (\frac{PP^\top}{M})\begin{pmatrix}
+    V_{11} \\v_{21}^\top
+\end{pmatrix}x_{t,query},
+\]
+Since only the last row of $W$ and the first d columns of $V$ affect the prediction, which means we can simply take all other entries zero in the following sections, corresponding to Assumption~\ref{initialization}.
+
+Here, the inner product of the embedding matrix $P$ is
+\[
+PP^\top = \begin{pmatrix}
+    P_1 & P_2 & \cdots & P_T & q_{\tau}\\
+\end{pmatrix}\begin{pmatrix}
+    P_1^\top \\ P_2^\top \\ \ldots \\ P_T^\top \\ q^\top_{\tau}
+\end{pmatrix} = P_1P_1^\top + \cdots + q_{\tau}q_{\tau}^\top
+\]
+where\[
+P_tP_t^\top = \begin{pmatrix}
+ \frac{1}{M}\sum_{i=1}^Mx_{t,i}x^\top_{t,i}+\frac{1}{M}x_{t,q}x_{t,q}^\top & \frac{1}{M}\sum_{i=1}^{M}x_{t,i}y_{t,i}\\
+ \frac{1}{M}\sum_{i=1}^Mx_{t,i}^\top y_{t,i} &\frac{1}{M}\sum_{i=1}^M y^2_{t,i}
+\end{pmatrix}\in \mathbb{R}^{(d+1)\times (d+1)}.
+\]
+
+Based on Theorem~\ref{limit}, the prediction $\hat{y}_{t,q}$ is
+\begin{align*}
+    \hat{y}_{t,q} &= \begin{pmatrix}
+    0_d^\top & 1
+\end{pmatrix}
+[\begin{pmatrix}
+ \frac{1}{M}\sum_{i=1}^Mx_{1,i}x^\top_{1,i}+\frac{1}{M}x_{1,q}x_{1,q}^\top & \frac{1}{M}\sum_{i=1}^{M}x_{1,i}y_{1,i}\\
+ \frac{1}{M}\sum_{i=1}^Mx_{1,i}^\top y_{1,i} &\frac{1}{M}\sum_{i=1}^M y^2_{1,i}
+\end{pmatrix}+\cdots]
+\begin{pmatrix}
+    \Gamma^{-1} & 0_d \\ 0_d^\top & 0
+\end{pmatrix}\begin{pmatrix}
+    x_{t,q} \\ 0
+\end{pmatrix}\\
+&=x_{t,q}^\top\Gamma^{-1}\left(\frac{1}{M}\sum_{i=1}^Mx_{1,i}y_{1,i}+\cdots\right)\\
+&=x_{t,q}^\top\Gamma^{-1}\left(\frac{1}{M}\sum_{s=1}^T\sum_{i=1}^M x_{s,i}y_{s,i}\right).
+\end{align*}
+
+\hfill$\square$
+
+
+\vspace{-0.1in}\section{Proof of Theorem~\ref{thm-generalization} and Corollary~\ref{ave_pre}}
+\label{proof_generalization}
+\textit{Proof.} We divide the proof into two parts. In the first part, we will prove the prediction of Mask Linear Self-attention and in the second part we will provide the prediction error for a specific $t$.
+
+Recall the definition of Mask Linear Self-Attention,
+\[
+f_{\mathrm{MSA}}(P;\theta)
+= P + WP\cdot
+\mathrm{mask}\!\left(P^\top VP\right).
+\]
+To process the mask matrix, we write it in vector form,
+\[
+[f_{\mathrm{MSA}}]_i = p_i + \frac{1}{i}\sum_{j=1}^i p_i^\top Vp_j\cdot Wp_j.
+\]
+where $p_i$ is the i-th column of the embedding matrix of $P$. So, we have
+\begin{align*}
+   \begin{pmatrix}
+    * \\ \hat{y}_{t,q}
+\end{pmatrix} &= \begin{pmatrix}
+    x_{t,q} \\0
+\end{pmatrix} + \frac{1}{t(M+1)}\sum_{j=1}^{t(M+1)}\begin{pmatrix}
+    x_{t,j}^\top & y_{t,j}
+\end{pmatrix}\begin{pmatrix}
+  \Gamma^{-1}&0_d \\
+  0^\top_d&0
+\end{pmatrix}\begin{pmatrix}
+    x_{t,q} \\ 0
+\end{pmatrix}\begin{pmatrix}
+    \textbf{0}_{d\times d} & 0_d \\ 0_d^\top & 1
+\end{pmatrix}\begin{pmatrix}
+    x_{t,j}\\y_{t,j}
+\end{pmatrix} \\
+\hat{y}_{t,q} &= x_{t,q}^\top\Gamma^{-1}
+\Big(\frac{1}{t(M+1)}\sum_{s=1}^t \sum_{j=1}^M x_{s,j}y_{s,j}\Big)
+\end{align*}
+
+That is the prediction of MSA module, different from LSA module below. In the following, we characterize the excess risk of the prediction of a trained LSA layer with respect to the risk of the best linear predictor, on a new task which is possibly non-linear.
+
+Unless otherwise specified, we denote $\mathbb{E}$ as the expectation over $(x_{t,i},y_{t,i}),(x_{t,q},y_{t,q})\sim \mathcal{D}$. Sine when $(x,y)\sim \mathcal{D}$, we assume that $\mathbb{E}(x),\mathbb{E}(y),\mathbb{E}(xx^\top),\mathbb{E}(yxx^\top y)$ exist. We denote \[
+a = \operatorname{arg min}_{w\in \mathbb{R}^d}\mathbb{E}(w_tx_{t,q}^\top-y_{t,q})^2,\mu_t=\mathbb E[x_{t,i}y_{t,i}],
+\Sigma_t=\operatorname{Var}(x_{t,i}y_{t,i}).
+\]
+
+as the weight of the best linear estimation. Actually, if we denote the function inside the minimum above as $R(w)$, we can write it as 
+\[
+R(w_t) = w_t^\top \Lambda w_t - 2\mathbb{E}(y_{t,q}\cdot x_{t,q}^\top)w_t + \mathbb{E}(y_{t,q}^2).
+\]
+Since the Hessian matrix $ \frac{\partial^2}{\partial w_t\partial w_t^\top}R(w_t) $ is $\Lambda$, which is positive definitive, we know that this function is strictly convex and hence, the global minimum can be reached at the unique first-order stationary point. That is 
+\[
+a = \Lambda^{-1}\mathbb{E}(x_{t,q}y_{t,q}).
+\]
+We also define a similar vector for ease of computation:
+\[
+ b =  \Gamma^{-1}\frac{M}{t(M+1)}\sum_{s=1}^t \mathbb{E}(x_{s,q}y_{s,q}) = \Gamma^{-1}\frac{M}{t(M+1)}\sum_{s=1}^t\mu_s.
+\]
+%\tilde{b}= \Gamma^{-1}\mathbb{E}(x_{t,q}y_{t,q}) = \Gamma^{-1}\mu_t
+Therefore, we can decompose the error as 
+\begin{align*}
+    \mathbb{E}[(\hat y_{t,q}-y_{t,q})^2]& = \mathbb{E}(\hat{y}_{t,q} - b^\top x_{t,q})^2 +\mathbb{E}(b^\top x_{t,q} - a^\top x_{t,q}) \\
+    &+ \mathbb{E}(a^\top x_{t,q} - y_{t,q})^2 + 2\mathbb{E}(\hat{y}_{t,q} - b^\top x_{t,q})(a^\top x_{t,q} - y_{t,q})\\
+    &+2\mathbb{E}(\hat{y}_{t,q} - b^\top x_{t,q})(b^\top x_{t,q}-a^\top x_t,q) + 2\mathbb{E}(y_{t,q} - a^\top x_{t,q})(b^\top x_{t,q}-a^\top x_{t,q})
+\end{align*}
+
+The first term is the first term on the Theorem~\ref{thm-generalization}. So it suffices to calculate others.
+
+From the tower property of conditional expectation, we have
+\begin{align*}
+  \mathbb{E}(\hat{y}_{t,q} - b^\top x_{t,q})(b^\top x_{t,q}-a^\top x_{t,q}) &= \mathbb{E}\left[\mathbb{E}\left((\hat{y}_{t,q} - b^\top x_{t,q})(b^\top x_{t,q}-a^\top x_{t,q})|x_{t,q}\right) \right] \\
+  &=\mathbb{E}\left[\mathbb{E}\left((\hat{y}_{t,q} - b^\top x_{t,q})|x_{t,q}\right)(b^\top x_{t,q}-a^\top x_{t,q}) \right]=0,
+\end{align*}
+since\[
+\mathbb{E}\left((\hat{y}_{t,q} - b^\top x_{t,q})|x_{t,q}\right) = \left(\mathbb{E}\frac{1}{t(M+1)}\Gamma^{-1}
+\Big(\sum_{s=1}^t \sum_{j=1}^M x_{s,j}y_{s,j}\Big)-b\right)^\top x_{t,q}=0.
+\]
+
+Similarly, we have \begin{align*}
+\mathbb{E}(\hat{y}_{t,q} - b^\top x_{t,q})(a^\top x_{t,q} - y_{t,q}) &= \mathbb{E}\left[\mathbb{E}\left((\hat{y}_{t,q} - b^\top x_{t,q})(a^\top x_{t,q} - y_{t,q})|x_{t,q},y_{t,q}\right)\right]\\
+&=\mathbb{E}\left[\mathbb{E}\left((\hat{y}_{t,q} - b^\top x_{t,q})|x_{t,q},y_{t,q}\right)(a^\top x_{t,q} - y_{t,q})\right]=0.
+\end{align*}
+
+Beyond them, we also have\begin{align*}
+\mathbb{E}(y_{t,q} - a^\top x_{t,q})(b^\top x_{t,q}-a^\top x_{t,q}) &= \mathbb{E}\operatorname{tr}\left[ (y_{t,q} - a^\top x_{t,q})(b-a)^\top x_{t,q}\right] \\
+&=\operatorname{tr}[(b-a)a^\top\Lambda] - \operatorname{tr}[(b-a)\mathbb{E}(x_{t,q}y_{t,q})] =0.
+\end{align*}
+where the last comes from the definition of $a$. Therefore, all cross terms vanish and it suffices to consider the remaining.
+
+Under the property of trace and the fact that $\Gamma$ and $\Lambda$ commute, We have
+\begin{align*}
+    &\mathbb{E}\left(\frac{1}{t(M+1)}\sum_{s=1}^t S_s - \frac{M}{t(M+1)}\sum_{s=1}^t\mu_s\right)\Gamma^{-1}x_{t,q}x_{t,q}^\top\Gamma^{-1}\left(\frac{1}{t(M+1)}\sum_{s=1}^t S_s - \frac{M}{t(M+1)}\sum_{s=1}^t\mu_s\right)\\
+    &=\mathbb{E}\operatorname{tr}\left(\frac{1}{t(M+1)}\sum_{s=1}^t S_s - \frac{M}{t(M+1)}\sum_{s=1}^t\mu_s\right)\left(\frac{1}{t(M+1)}\sum_{s=1}^t S_s - \frac{M}{t(M+1)}\sum_{s=1}^t\mu_s\right)^\top\Gamma^{-2}\Lambda \\
+    &=\frac{1}{t^2(M+1)^2}\sum_{i,j=1}^M\mathbb{E}\operatorname{tr}\left\{(\sum_{s=1}^tx_{s,i}y_{s,i} - \sum_{s=1}^t\mu_s)(\sum_{s=1}^tx_{s,j}y_{s,j} - \sum_{s=1}^t\mu_s)^\top\Gamma^{-2}\Lambda\right\}\\
+    &=\frac{M}{t^2(M+1)^2}\mathbb{E}\operatorname{tr}\left\{(\sum_{s=1}^tx_{s,1}y_{s,1} - \sum_{s=1}^t\mu_s)(\sum_{s=1}^tx_{s,1}y_{s,1} - \sum_{s=1}^t\mu_s)^\top\Gamma^{-2}\Lambda\right\}\\
+    &=\frac{M}{t^2(M+1)^2}\sum_{s=1}^t\operatorname{tr}(\Sigma_s\Gamma^{-2}\Lambda).
+\end{align*}
+
+Notice that all cross terms vanish due to the independence of $x_i$, and the last line comes from the definition of $\Sigma$.
+
+For the last term, we have\begin{align*}
+    &\mathbb{E}(b-a)^\top x_{t,q}x_{t,q}^\top (b-a) =  \operatorname{tr}\left[(b-a)^\top\Lambda(b-a)\right]. 
+\end{align*}
+
+We consider the quadratic form
+\[
+\mathcal{Q}
+\;\triangleq\;
+\bigl(\Gamma^{-1}\alpha S - \Lambda^{-1}\mu_t\bigr)^\top
+\Lambda
+\bigl(\Gamma^{-1}\alpha S - \Lambda^{-1}\mu_t\bigr),\:
+\text{where}\:\:\alpha = \frac{M}{t(M+1)},\;
+S=\sum_{s=1}^t \mu_s,
+\]
+where
+\[
+\Gamma
+= \Bigl(1+\frac{1}{N}\Bigr)\Lambda
++ \frac{\operatorname{tr}(\Lambda)}{N} I_d .
+\]
+
+Since $\Gamma$ is a polynomial in $\Lambda$, the two matrices commute and are
+simultaneously diagonalizable. Let
+\[
+\Lambda = U \operatorname{diag}(\lambda_1,\dots,\lambda_d) U^\top ,
+\]
+and define the coordinates
+\[
+s_i = u_i^\top S,
+\qquad
+m_i = u_i^\top \mu_t ,
+\qquad
+\tau = \operatorname{tr}(\Lambda) = \sum_{j=1}^d \lambda_j .
+\]
+Then
+\[
+\Gamma = U \operatorname{diag}(c\lambda_i + d) U^\top,
+\quad
+c = 1 + \frac{1}{N},
+\quad
+d = \frac{\tau}{N}.
+\]
+
+Using orthogonality of $U$, the quadratic form decomposes as
+\[
+\mathcal{Q}
+= \sum_{i=1}^d
+\left[
+\frac{\alpha^2 \lambda_i}{(c\lambda_i+d)^2} s_i^2
+- \frac{2\alpha}{c\lambda_i+d} s_i m_i
++ \frac{1}{\lambda_i} m_i^2
+\right].
+\]
+
+Combining the terms over a common denominator yields
+\[
+\mathcal{Q}
+= \sum_{i=1}^d
+\frac{
+\alpha^2 \lambda_i^2 s_i^2
+- 2\alpha \lambda_i (c\lambda_i+d) s_i m_i
++ (c\lambda_i+d)^2 m_i^2
+}{
+\lambda_i (c\lambda_i+d)^2
+}.
+\]
+
+Note that
+\[
+c\lambda_i + d
+= \frac{(N+1)\lambda_i + \tau}{N}
+= \frac{\lambda_i N + (\lambda_i+\tau)}{N}.
+\]
+Multiplying numerator and denominator by $N^2$ gives
+\[
+\mathcal{Q}
+= \sum_{i=1}^d
+\frac{
+N^2 \alpha^2 \lambda_i^2 s_i^2
+- 2\alpha N \lambda_i \bigl(\lambda_i N + \lambda_i+\tau\bigr) s_i m_i
++ \bigl(\lambda_i N + \lambda_i+\tau\bigr)^2 m_i^2
+}{
+\lambda_i \bigl(\lambda_i N + \lambda_i+\tau\bigr)^2
+}.
+\]
+
+The numerator is a perfect square:
+\[
+N^2 \alpha^2 \lambda_i^2 s_i^2
+- 2\alpha N \lambda_i \bigl(\lambda_i N + \lambda_i+\tau\bigr) s_i m_i
++ \bigl(\lambda_i N + \lambda_i+\tau\bigr)^2 m_i^2
+=
+\bigl(\lambda_i (\alpha s_i - m_i) N - (\lambda_i+\tau) m_i\bigr)^2 .
+\]
+Hence,
+\[
+\mathcal{Q}
+=
+\sum_{i=1}^d
+\frac{
+\bigl(\lambda_i (\alpha s_i - m_i) N - (\lambda_i+\tau) m_i\bigr)^2
+}{
+\lambda_i \bigl(\lambda_i N + (\lambda_i+\tau)\bigr)^2
+}.
+\]
+
+Equivalently,
+\[
+\mathcal{Q}
+=
+\sum_{i=1}^d
+\frac{1}{\lambda_i}
+\left(
+\frac{\lambda_i(\alpha s_i - m_i) N - (\lambda_i+\tau)m_i}
+{\lambda_i N + (\lambda_i+\tau)}
+\right)^2 ,
+\]
+which is an exact expression exhibiting the dependence on $N$. So, overall, the prediction error satisfies
+\[
+\begin{aligned}
+\mathbb{E}[(\hat y_{t,q}-y_{t,q})^2]
+=&\min_{w\in\mathbb{R}^d} \mathbb{E}(w^\top x_{t,q} - y_{t,q})^2 +\frac{M}{t^2(M+1)^2}\,\sum_{s=1}^t\mathrm{tr}(\Sigma_s\,\Gamma^{-2}\Lambda)+\sum_{i=1}^d \frac{1}{\lambda_i}\Big(\frac{\lambda_i(\alpha s_i - m_i) - m_i\frac{\lambda_i + \operatorname{tr}(\Lambda)}{N}}{\lambda_i + \frac{\lambda_i + \operatorname{tr}(\Lambda)}{N}} \Big)^2,
+\end{aligned}
+\]
+where $\alpha=\frac{M}{t(M+1)},s_i = u_i^\top\sum_{s=1}^t\mu_s,m_i = u_i^\top\mu_t$ and $ \Lambda =\sum_{i=1}^d\lambda_i u_iu_i^\top$.
+
+For Corollary~\ref{ave_pre}, we proceed by diagonalizing $\Lambda$. Let
+\[
+\Lambda = U \operatorname{diag}(\lambda_1,\dots,\lambda_d) U^\top, 
+\quad s_i = u_i^\top \sum_{s=1}^T \mu_s, \quad m_{i,t} = u_i^\top \mu_t, \quad \tau = \mathrm{tr}(\Lambda).
+\]
+
+Then $\Gamma = \left(1+\frac{1}{N}\right)\Lambda + \frac{\tau}{N} I_d$, so in each eigen-direction $u_i$ we have
+\[
+d_i = \lambda_i + \frac{\lambda_i + \tau}{N}.
+\]
+
+Hence for each $t$ and $i$, the contribution in the $i$-th eigen-direction is
+\[
+Q_{i,t} = \frac{1}{\lambda_i} \Big(\frac{\lambda_i \beta s_i}{d_i} - m_{i,t} \Big)^2.
+\]
+
+\[
+\frac{1}{T}\sum_{t=1}^T Q_{i,t} = \frac{1}{T}\sum_{t=1}^T \Big(\frac{\lambda_i \beta s_i}{d_i} - m_{i,t} \Big)^2.
+\]
+
+Let $\bar m_i = \frac{1}{T}\sum_{t=1}^T m_{i,t}$. Then
+\[
+\begin{aligned}
+\frac{1}{T}\sum_{t=1}^T \Big(\frac{\lambda_i \beta s_i}{d_i} - m_{i,t} \Big)^2 
+&= \frac{1}{T}\sum_{t=1}^T \Big(\frac{\lambda_i \beta s_i}{d_i} - \bar m_i + \bar m_i - m_{i,t} \Big)^2 \\
+&= \frac{1}{T}\sum_{t=1}^T \Big( (\frac{\lambda_i \beta s_i}{d_i} - \bar m_i)^2 + 2(\frac{\lambda_i \beta s_i}{d_i} - \bar m_i)(\bar m_i - m_{i,t}) + (\bar m_i - m_{i,t})^2 \Big) \\
+&= (\frac{\lambda_i \beta s_i}{d_i} - \bar m_i)^2 + \frac{1}{T}\sum_{t=1}^T (m_{i,t} - \bar m_i)^2.
+\end{aligned}
+\]
+The cross term vanishes because $\sum_{t=1}^T (m_{i,t}-\bar m_i)=0$.
+
+Finally, summing over $i=1,\dots,d$, we obtain
+\[
+\frac{1}{T}\sum_{t=1}^T R_t = \sum_{i=1}^d \frac{1}{\lambda_i} \Big[ (\bar m_i - \frac{\lambda_i \beta s_i}{d_i})^2 + \frac{1}{T}\sum_{t=1}^T (m_{i,t}-\bar m_i)^2 \Big].
+\]
+
+Hence, the full average prediction error becomes
+\begin{align*}
+    \frac{1}{T}\sum_{t=1}^T \mathbb{E}\big[(\hat Y_{t,q}-y_{t,q})^2\big] &=
+\frac{1}{T}\sum_{t=1}^T \min_{w\in\mathbb{R}^d} \mathbb{E}(w^\top x_{t,q} - y_{t,q})^2\\
+&+ \frac{M}{(TM+T+1)^2} \sum_{s=1}^T \mathrm{tr}(\Sigma_s \Gamma^{-2}\Lambda)
++ \sum_{i=1}^d \frac{1}{\lambda_i} \Big[ (\bar m_i - \frac{\lambda_i \beta s_i}{d_i})^2 + \frac{1}{T}\sum_{t=1}^T (m_{i,t}-\bar m_i)^2 \Big].
+\end{align*}
+
+\hfill$\square$
+
+
+\vspace{-0.1in}\section{Proof of Theorem~\ref{forgetting} and Corollary~\ref{d_forgetting}}
+\textit{Proof.} Similar to $\hat{y}_{t,q}$, we have
+\begin{align*}
+   \begin{pmatrix}
+    * \\ \hat{Y}_{t,q}
+\end{pmatrix} &= \begin{pmatrix}
+    x_{t,q} \\0
+\end{pmatrix} + \frac{1}{T(M+1)+1}\sum_{j=1}^{T(M+1)}\begin{pmatrix}
+    x_{t,j}^\top & y_{t,j}
+\end{pmatrix}\begin{pmatrix}
+  \Gamma^{-1}&0_d \\
+  0^\top_d&0
+\end{pmatrix}\begin{pmatrix}
+    x_{t,q} \\ 0
+\end{pmatrix}\begin{pmatrix}
+    \textbf{0}_{d\times d} & 0_d \\ 0_d^\top & 1
+\end{pmatrix}\begin{pmatrix}
+    x_{t,j}\\y_{t,j}
+\end{pmatrix} \\
+\hat{Y}_{t,q} &= x_{t,q}^\top\Gamma^{-1}
+\Big(\frac{1}{T(M+1)+1}\sum_{s=1}^T \sum_{j=1}^M x_{s,j}y_{s,j}\Big).
+\end{align*}
+
+Comparing the two estimations, we have 
+\begin{align*}
+    \hat{Y}_{t,q} - \hat{y}_{t,q} = x_{t,q}^\top\Gamma^{-1}(\sum_{i=1}^tc_iS_i + d\sum_{i=t+1}^TS_i),
+\end{align*}
+where\[
+c_i = - \frac{(T-t)M + T+1-t}{t(M+1)(T+M+1)},\quad d = \frac{1}{T(M+1)+1}.
+\]
+
+Let
+\[
+B=\sum_{i=1}^t c_i S_i + d\sum_{i=t+1}^T S_i.
+\]
+Then
+\[
+(\hat{Y}_{t,q}-\hat{y}_{t,q})^2 = (x_{t,q}^\top \Gamma^{-1} B)^2 = \mathrm{tr}\big( B B^\top \Gamma^{-1} x_{t,q} x_{t,q}^\top \Gamma^{-1}\big).
+\]
+Taking expectation and using iterated expectation on \(x_{t,q}\),
+\[
+\mathbb{E}\big[(\hat{Y}_{t,q}-\hat{y}_{t,q})^2\big]
+= \mathrm{tr}\big(\mathbb{E}[BB^\top]\Gamma^{-2}\Lambda\big).
+\]
+where $\Gamma$ and $\Lambda$ are commute.
+
+Writing \(B=\sum_{i=1}^T\alpha_i S_i\) with \(\alpha_i=c_i\) for \(i\le t\) and \(\alpha_i=d\) for \(i>t\), we have
+\[
+\mathbb{E}[BB^\top] = \sum_{i=1}^T\sum_{j=1}^T \alpha_i\alpha_j\,\mathbb{E}[S_iS_j^\top].
+\]
+If \(S_i\) are sums of i.i.d. terms with means \(\mu_i\) and covariances \(\Sigma_i\), and groups are independent. Following the Lemma~\ref{useful_lemma}, we have
+\[
+\mathbb{E}[S_iS_j^\top] =
+\begin{cases}
+M\Sigma_i + M^2\mu_i\mu_i^\top, & i=j,\\
+M^2\mu_i\mu_j^\top, & i\neq j.
+\end{cases}
+\]
+Hence
+\[
+\mathbb{E}\big[(\hat{Y}_{t,q}-\hat{y}_{t,q})^2\big]
+= \sum_{i=1}^T \alpha_i^2\Big( M\,\mathrm{tr}(\Sigma_i \Gamma^{-2}\Lambda) + M^2\,\mathrm{tr}(\mu_i\mu_i^\top \Gamma^{-2}\Lambda)\Big)
++ \sum_{i\neq j}\alpha_i\alpha_j\,M^2\,\mathrm{tr}(\mu_i\mu_j^\top \Gamma^{-2}\Lambda).
+\]
+
+The proof of Corollary~\ref{d_forgetting} is evident; one needs only unfold the interactions between different tasks according to the task sequence.
+
+\hfill$\square$
+
+
+\vspace{-0.1in}\section{Proof of Corollary~\ref{aver}}
+\textit{Proof.} Recall that the interference error at task $t$ is given by
+\[
+\mathbb{E}\big[(\hat{Y}_{t,q}-\hat y_{t,q})^2\big]
+=
+\sum_{i=1}^T \alpha_i(t)^2
+\,\mathrm{tr}\!\big[(M\Sigma_i+M^2\mu_i\mu_i^\top)\Gamma^{-2}\Lambda\big]
++
+M^2\!\sum_{i\ne j}\alpha_i(t)\alpha_j(t)\,
+\mathrm{tr}(\mu_i\mu_j^\top\Gamma^{-2}\Lambda),
+\]
+where
+\[
+\alpha_i(t)=
+\begin{cases}
+c_t, & i\le t,\\
+d, & i>t,
+\end{cases}
+\qquad
+d=\dfrac{1}{TM+T+1}.
+\]
+
+We consider the time-averaged interference error
+\[
+\frac{1}{T}\sum_{t=1}^T \mathbb{E}\big[(\hat{Y}_{t,q}-\hat y_{t,q})^2\big].
+\]
+Substituting the above expression and exchanging the order of summation yields
+\[
+\frac{1}{T}\sum_{t=1}^T \mathbb{E}\big[(\hat{Y}_{t,q}-\hat y_{t,q})^2\big]
+=
+\sum_{i=1}^T S_i
+\,\mathrm{tr}\!\big[(M\Sigma_i+M^2\mu_i\mu_i^\top)\Gamma^{-2}\Lambda\big]
++
+M^2\!\sum_{i\ne j} S_{ij}\,
+\mathrm{tr}(\mu_i\mu_j^\top\Gamma^{-2}\Lambda),
+\]
+where the averaged coefficients are defined as
+\[
+S_i \triangleq \frac{1}{T}\sum_{t=1}^T \alpha_i(t)^2,
+\qquad
+S_{ij} \triangleq \frac{1}{T}\sum_{t=1}^T \alpha_i(t)\alpha_j(t),
+\quad i\ne j.
+\]
+
+For a fixed task index $i$, note that $\alpha_i(t)=d$ for $t<i$ and $\alpha_i(t)=c_t$ for $t\ge i$. Hence,
+\[
+\sum_{t=1}^T \alpha_i(t)^2
+=
+\sum_{t=1}^{i-1} d^2
++
+\sum_{t=i}^T c_t^2
+=
+(i-1)d^2 + \sum_{t=i}^T c_t^2,
+\]
+which gives
+\[
+S_i
+=
+\frac{1}{T}\Big((i-1)d^2 + \sum_{t=i}^T c_t^2\Big).
+\]
+
+Without loss of generality, assume $i<j$. The product $\alpha_i(t)\alpha_j(t)$ admits the following partition:
+\[
+\alpha_i(t)\alpha_j(t)=
+\begin{cases}
+d^2, & t<i,\\[3pt]
+c_t d, & i\le t<j,\\[3pt]
+c_t^2, & t\ge j.
+\end{cases}
+\]
+Therefore,
+\[
+\sum_{t=1}^T \alpha_i(t)\alpha_j(t)
+=
+\sum_{t=1}^{i-1} d^2
++
+\sum_{t=i}^{j-1} c_t d
++
+\sum_{t=j}^T c_t^2,
+\]
+and hence
+\[
+S_{ij}
+=
+\frac{1}{T}\Big(
+(i-1)d^2
++
+\sum_{t=i}^{j-1} c_t d
++
+\sum_{t=j}^T c_t^2
+\Big).
+\]
+By symmetry, the same expression holds for $i>j$.
+
+Combining the expressions of $S_i$ and $S_{ij}$ completes the derivation of the time-averaged interference error and proves the claim.
+
+\hfill$\square$
+
+\vspace{-0.1in}\section{Additional Experiments Results and Setting Details}
+\label{app:exp_details}
+\noindent \textbf{Model Architecture.}
+We use decoder-style GPT2 transformers trained on linear regression tasks with mean-zero Gaussian inputs. Each task is associated with a fixed identity covariance matrix across prompts. The training procedure follows~\citet{garg2022what}, where the model learns to perform in-context learning by observing diverse task instances. 
+During inference, the model parameters remain fixed, and adaptation occurs solely through the attention mechanism.
+
+\noindent \textbf{Data Generation.}
+Each task corresponds to a linear regression problem: input vectors $x \in \mathbb{R}^d$ are drawn from a standard Gaussian distribution $\mathcal{N}(0, I_d)$, and task-specific weight vectors $w \in \mathbb{R}^d$ define the linear mapping. Task identity is implicit, determined solely by the ordering of examples within the prompt sequence.
+
+\noindent \textbf{Training Hyperparameters}
+The synthetic experiments utilized two scales of decoder-style GPT-2 models. The models were trained from scratch using the Adam optimizer. The detailed hyperparameters are provided below:
+
+\begin{itemize}
+    \item \textbf{Standard GPT-2}: 12 layers, 8 attention heads, and an embedding dimension of 256 ($\sim$ 9.5M parameters). The model was trained with a learning rate of $1 \times 10^{-4}$ and a batch size of 64 for 500k steps.
+    \item \textbf{Tiny GPT-2}: 3 layers, 2 attention heads, and an embedding dimension of 64 ($\sim$ 0.2M parameters). The model was trained using similar optimization settings. The final converged training loss refers to Figure~\ref {fig:training}.
+\end{itemize}
+
+
+\noindent \textbf{Evaluation.}
+For each experiment, we generate multiple sequences of tasks and measure the model's prediction error on query points. We report the mean squared error (MSE) averaged over multiple batches, along with standard deviations. The evaluation metrics directly correspond to the theoretical quantities introduced in Sections~\ref{performance_defination} and~\ref{theory}, including per-task prediction error, forgetting error (the difference between intermediate-task predictions and final predictions after processing all tasks), and the average interference error across all tasks.
+
+\begin{figure}[h]
+\vspace{0.1in}
+\begin{center}
+\centerline{
+\begin{tabular}{ccc}
+\includegraphics[width=0.5\columnwidth]{figs/exp_4_2_variation_1_context_length_plot.pdf}&
+\includegraphics[width=0.5\columnwidth]{figs/exp_4_2_variation_2_task_similarity_plot.pdf}\\
+(a) Context Length. & (b) Task Similarity.
+\end{tabular}
+}
+\caption{Different factors influence forgetting.}
+\label{fig:M_si}
+\end{center}
+\vspace{-0.1in}
+\end{figure}
+
+
+\subsection{Context Length}
+\noindent \textbf{Experimental design.}
+We fix the number of tasks $T = 5$ and vary the number of in-context examples per task $M \in \{1, 2, 3, 5, \ldots,20\}$. For each value of $M$, we evaluate the prediction error for each task position and compute the overall average MSE.
+
+In addition to presenting in the main text how $M$ affects generalization behavior, we here provide supplementary results on how context length influences forgetting, as illustrated in Figure~\ref{fig:M_si}. As discussed in the main text, increasing the context length effectively reduces variance-induced interference, but forgetting remains due to irreducible interference arising from mean misalignment across tasks.
+
+
+
+\subsection{Task Similarity}
+\noindent \textbf{Experimental design.}
+We construct task parameters with controlled similarity by generating task weight vectors $w_t$ such that the angle between task means is controlled by a parameter $\theta$. We fix the number of tasks $T = 5$ and the context length $M = 20$, and vary $\theta \in \{0, \pi/12, \pi/6, \pi/4, \pi/3, \pi/2\}$. To ensure fair comparison, we use the same set of fixed task weights across all $\theta$ values, only varying the relationship between tasks.
+
+In addition to the main text, where we show how task similarity affects generalization behavior, we here provide supplementary results on its impact on forgetting in Figure~\ref{fig:M_si}. As discussed, forgetting is amplified when future tasks are statistically similar to the current task. 
+
+
+\subsection{Task Ordering}
+\noindent \textbf{Experimental design.}
+We evaluate prediction error for intermediate tasks both before and after processing subsequent tasks. Specifically, for a sequence of $T$ tasks, we measure the prediction error for task $t$ at two points: (1) immediately after task $t$ is presented (before processing tasks $t+1, \ldots, T$), and (2) after all $T$ tasks have been processed. We also compare different task orderings while keeping the task set fixed, using permutations of the same task weights to isolate the effect of order from task identity.
+
+\subsection{More Complex Tasks}
+\label{app:nonlinear}
+\noindent \textbf{Experimental design.}
+To verify that the systematic bias and inter-task interference observed in our linear framework extend to highly non-linear environments, we evaluated the models on Sparse Linear Regression and two-layer ReLU Neural Networks. The two-layer ReLU network is formally defined as $f(x) = \sum_{i=1}^{r}\alpha_{i}\sigma(w_{i}^{\top}x)$. We maintained the same sequence structure of $T=5$ tasks and varied the context length $M$. For evaluation, the normalized MSE is computed by applying global min-max scaling across all evaluated context lengths and tasks within the same task family.
+
+\noindent \textbf{Extended Results.}
+Table~\ref{tab:app_nonlinear_full} presents the complete set of normalized MSE values across all 5 tasks and 10 different context lengths. Consistent with the theoretical predictions in the main text, increasing $M$ initially provides variance reduction (visible in Task 1). However, for subsequent tasks (Tasks 3, 4, and 5), incorporating misaligned historical context introduces severe systematic bias, causing the error to rise sharply at larger context lengths.
+
+\begin{table*}[t]
+\centering
+\caption{Complete Normalized MSE for Non-linear Tasks across varying Context Lengths ($M$).}
+\label{tab:app_nonlinear_full}
+\begin{tabular}{lcccccc}
+\toprule
+\textbf{Task Type} & $M$ & \textbf{Task 1} & \textbf{Task 2} & \textbf{Task 3} & \textbf{Task 4} & \textbf{Task 5} \\
+\midrule
+\multirow{10}{*}{\textbf{Sparse Linear}} 
+ & 1  & 0.1709 & 0.1728 & 0.1979 & 0.2240 & 0.2433 \\
+ & 2  & 0.1564 & 0.1929 & 0.2555 & 0.3038 & 0.3842 \\
+ & 3  & 0.1267 & 0.2075 & 0.3220 & 0.3937 & 0.4173 \\
+ & 5  & 0.0880 & 0.2629 & 0.3933 & 0.3714 & 0.3483 \\
+ & 7  & 0.0504 & 0.2907 & 0.3625 & 0.3206 & 0.3278 \\
+ & 9  & 0.0235 & 0.3003 & 0.2993 & 0.3192 & 0.8545 \\
+ & 11 & 0.0091 & 0.2818 & 0.2974 & 0.7724 & 0.9095 \\
+ & 13 & 0.0053 & 0.2537 & 0.7137 & 0.8742 & 0.9182 \\
+ & 15 & 0.0015 & 0.2334 & 0.7347 & 0.8773 & 0.9787 \\
+ & 19 & 0.0000 & 0.2255 & 0.8571 & 1.0000 & 0.9905 \\
+\midrule
+\multirow{10}{*}{\textbf{2-layer ReLU NN}} 
+ & 1  & 0.5334 & 0.6092 & 0.6264 & 0.6723 & 0.7179 \\
+ & 2  & 0.4414 & 0.5887 & 0.6964 & 0.8010 & 0.8480 \\
+ & 3  & 0.3693 & 0.5726 & 0.7137 & 0.8356 & 0.8905 \\
+ & 5  & 0.2992 & 0.6407 & 0.7726 & 0.9099 & 0.9677 \\
+ & 7  & 0.2246 & 0.5856 & 0.8496 & 0.8851 & 0.9494 \\
+ & 9  & 0.1657 & 0.6196 & 0.8154 & 0.9527 & 0.9506 \\
+ & 11 & 0.0995 & 0.5666 & 0.8178 & 0.8963 & 0.9268 \\
+ & 13 & 0.0900 & 0.6166 & 0.8007 & 0.8868 & 0.9881 \\
+ & 15 & 0.0478 & 0.5639 & 0.7575 & 0.9403 & 0.9032 \\
+ & 19 & 0.0000 & 0.5861 & 0.7313 & 0.8367 & 1.0000 \\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+
+\subsection{Real-world LLMs: Prompting and Evaluation Details}
+\label{app:realworld_details}
+\noindent \textbf{Experimental setup.}
+To validate our theory in realistic NLP scenarios, we utilized the HuggingFace `transformers` library to evaluate the \texttt{Qwen2.5-1.5B-Instruct} model on a sequence of heterogeneous text classification tasks. We selected SST-2 (binary sentiment classification) as Task A and AG News (four-class topic classification) as Task B. For few-shot demonstrations, we sampled examples from the respective training splits, while the evaluation queries were drawn from the SST-2 validation split and the AG News test split. We utilized a standard causal language modeling generation pipeline with \texttt{max\_new\_tokens=32}.
+
+\noindent \textbf{Prompt Construction.}
+We concatenated $M$ historical examples from Task A, followed by $M$ historical examples from Task B, and appended the final target query. Task identity was implicitly provided by the demonstration format. The precise prompt template structure is as follows:
+
+\begin{tcolorbox}[colback=gray!5!white, colframe=gray!75!black, title=Prompt Template for ICCL Evaluation, arc=2mm]
+\small
+\begin{verbatim}
+You are an expert text classifier. Read the examples and classify 
+the final text accordingly.
+
+--- Task 1: Sentiment Analysis ---
+Text: [SST-2 Text]
+Label: [Positive / Negative]
+
+... (M examples of Task A) ...
+
+--- Task 2: News Topic Classification ---
+Text: [AG News Text]
+Label: [World / Sport / Business / Science]
+
+... (M examples of Task B) ...
+
+--- Task [1 or 2]: [Task Name] ---
+Text: [Target Query Text]
+Label:
+\end{verbatim}
+\end{tcolorbox}
+
+\noindent \textbf{Evaluation Metric.}
+Rather than relying on log-probabilities, we extracted the model's prediction directly from the generated free-text completion. We mapped the output to the corresponding class ID through robust sub-string keyword matching (e.g., matching ``positive''/``negative'' for SST-2, and ``world''/``sport''/``business''/``science''/``tech'' for AG News). Accuracy was then computed against the ground-truth labels.
+
+
+ 
+
+\end{document}
+

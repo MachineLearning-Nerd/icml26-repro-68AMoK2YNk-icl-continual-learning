@@ -1,0 +1,52 @@
+{
+  "claims": {
+    "claim_1_interference": {
+      "causal_prefix_predictions_changed": 0,
+      "future_task_mutations": 500,
+      "max_causal_prefix_difference": 0.0,
+      "uniform_predictions_changed": 500
+    },
+    "claim_2_positive_negative_transfer": {
+      "angle_cells": 361,
+      "baseline_target_risk": 0.055000027000068855,
+      "maximum_risk_change": 0.9674999594999373,
+      "minimum_risk_change": -0.022499986500006085,
+      "negative_transfer_cells": 326,
+      "positive_transfer_cells": 35
+    },
+    "claim_3_order_and_long_prompt": {
+      "fixed_prefix_permutation_invariant": true,
+      "generalization_range": 1.1549746663545082,
+      "long_prompt_cells": 22,
+      "long_prompt_end_risk": 3.1670200516991933,
+      "long_prompt_start_risk": 0.06943189400248316,
+      "prediction_drift_range": 0.4992313730225818,
+      "task_permutations": 120
+    }
+  },
+  "independent_formula_audit": {
+    "max_expanded_vs_independent_error": 6.217248937900877e-15,
+    "negative_control_literal_T_plus_M_plus_1_failures": 9600,
+    "random_systems": 2400
+  },
+  "monte_carlo_readback": {
+    "cells": 12,
+    "maximum_absolute_z_score": 1.672334667931274,
+    "maximum_relative_error": 0.011734351861158364,
+    "total_trials": 720000,
+    "trials_per_cell": 60000
+  },
+  "paper_id": "68AMoK2YNk",
+  "scope_disclosures": [
+    "Theorem 4.2 metric is prediction drift, not target-risk increase.",
+    "Fixed-prefix permutations are sum-invariant in the analyzed model.",
+    "Appendix literal denominator T+M+1 is rejected; theorem-consistent TM+T+1 is used."
+  ],
+  "source": {
+    "arxiv": "2605.28705v1",
+    "files": {
+      "main.tex": "026aa3bdb1f7903172b9935e6181123260ff6e4dedc3a24965bfe1ce6e5f97f9"
+    },
+    "tar_sha256": "c28cca01207449b7dea91544161b5f8c764ef1001f729efd17073ba7b4101210"
+  }
+}

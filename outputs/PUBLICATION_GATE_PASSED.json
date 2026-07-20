@@ -1,0 +1,18 @@
+{
+  "claim_outcomes": {
+    "claim_1_interference": "verified",
+    "claim_2_transfer": "verified",
+    "claim_3_order_long_prompt": "verified"
+  },
+  "evidence_sha256": "12d3447b2c803b6360f6270a7c93cdbd8d3c82edc8625dc1c3f2b890e58310e5",
+  "paper": "68AMoK2YNk",
+  "publication_gate_passed": true,
+  "scope_disclosures": [
+    "Theorem 4.2 metric is prediction drift, not target-risk increase.",
+    "Fixed-prefix permutations are sum-invariant in the analyzed model.",
+    "Appendix literal denominator T+M+1 is rejected; theorem-consistent TM+T+1 is used."
+  ],
+  "source_tar_sha256": "c28cca01207449b7dea91544161b5f8c764ef1001f729efd17073ba7b4101210",
+  "status": "passed",
+  "tests_passed": true
+}
