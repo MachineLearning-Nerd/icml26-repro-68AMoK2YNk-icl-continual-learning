@@ -1,0 +1,72 @@
+{
+  "schema_version": 1,
+  "title": "Repro - In-Context Continual Learning",
+  "emoji": "\ud83c\udfaf",
+  "space_id": "DineshAI/68AMoK2YNk",
+  "paper": {
+    "openreview_id": "68AMoK2YNk",
+    "arxiv_id": "2605.28705"
+  },
+  "tags": [
+    "icml2026-repro",
+    "paper-68AMoK2YNk"
+  ],
+  "updated_at": "2026-07-22T16:09:06+00:00",
+  "root": {
+    "slug": "index",
+    "title": "Repro - In-Context Continual Learning",
+    "file": "pages/index.md",
+    "children": [
+      {
+        "slug": "claim-1-interference",
+        "title": "Claim 1 \u2014 Interference",
+        "file": "pages/claim-1-interference/page.md",
+        "children": []
+      },
+      {
+        "slug": "claim-2-transfer",
+        "title": "Claim 2 \u2014 Transfer",
+        "file": "pages/claim-2-transfer/page.md",
+        "children": []
+      },
+      {
+        "slug": "claim-3-order-and-prompts",
+        "title": "Claim 3 \u2014 Order and prompts",
+        "file": "pages/claim-3-order-and-prompts/page.md",
+        "children": []
+      },
+      {
+        "slug": "methods",
+        "title": "Methods",
+        "file": "pages/methods/page.md",
+        "children": []
+      },
+      {
+        "slug": "negative-controls",
+        "title": "Negative controls",
+        "file": "pages/negative-controls/page.md",
+        "children": []
+      },
+      {
+        "slug": "conclusion",
+        "title": "Conclusion",
+        "file": "pages/conclusion/page.md",
+        "children": []
+      },
+      {
+        "slug": "claim-nonmonotone-error",
+        "title": "Claim \u2014 non-monotonic in-context error",
+        "file": "pages/claim-nonmonotone-error/page.md",
+        "children": []
+      },
+      {
+        "slug": "claim-4-interference-asymptotics",
+        "title": "Claim 4 \u2014 variance decay and persistent mean interference",
+        "file": "pages/claim-4-interference-asymptotics/page.md",
+        "children": []
+      }
+    ]
+  },
+  "agent_view_tokens": 1176,
+  "revision": "1784736551110207000"
+}

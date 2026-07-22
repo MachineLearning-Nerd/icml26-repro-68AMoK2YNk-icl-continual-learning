@@ -1,0 +1,221 @@
+{
+  "aligned_negative_control_floor_ratio": 8.396996605601367e-14,
+  "analytic_limits": {
+    "limit_M_c_t": -0.25,
+    "limit_M_d": 0.25,
+    "limit_M_times_variance": 0.5535736808100309,
+    "limit_mean_interference": 0.2879891062740707
+  },
+  "checks": {
+    "M_times_variance_reaches_limit": true,
+    "aligned_negative_control_removes_floor": true,
+    "future_coefficients_positive": true,
+    "misaligned_mean_reaches_positive_floor": true,
+    "past_coefficients_negative": true,
+    "variance_tail_log_slope_is_minus_one": true
+  },
+  "claim": "Theorem 4.4 variance interference is O(1/M) while misaligned mean interference persists",
+  "largest_M_relative_error": {
+    "M_times_variance": 1.9351621910130772e-06,
+    "mean_interference": 1.9500670393284207e-06
+  },
+  "parameters": {
+    "N": 100,
+    "T": 4,
+    "lambda_diag": [
+      0.8,
+      1.3,
+      2.1
+    ],
+    "misaligned_task_means": [
+      [
+        1.0,
+        0.2,
+        -0.1
+      ],
+      [
+        -0.3,
+        1.1,
+        0.4
+      ],
+      [
+        0.5,
+        -0.7,
+        1.2
+      ],
+      [
+        -0.8,
+        0.3,
+        0.9
+      ]
+    ],
+    "sigma_diags": [
+      [
+        1.0,
+        0.5,
+        1.2
+      ],
+      [
+        0.7,
+        1.4,
+        0.9
+      ],
+      [
+        1.3,
+        0.8,
+        1.1
+      ],
+      [
+        0.6,
+        1.2,
+        1.5
+      ]
+    ],
+    "t": 2
+  },
+  "source": {
+    "retrieved_utc": "2026-07-22",
+    "scope": "Theorem 4.4, Remark 4.5, and the context-length row of Table 1",
+    "sha256": "fa6ee7cf7a58098d8377d2ea9db8bd869aee3b2cbe6e0a5e2d6e9b277214e9c4",
+    "url": "https://ar5iv.labs.arxiv.org/html/2605.28705"
+  },
+  "sweep": [
+    {
+      "M": 1,
+      "M_times_variance": 0.13830793226274277,
+      "c_t": -0.1388888888888889,
+      "d": 0.1111111111111111,
+      "mean_interference": 0.0712073774605951,
+      "total_interference": 0.20951530972333787,
+      "variance": 0.13830793226274277
+    },
+    {
+      "M": 2,
+      "M_times_variance": 0.2452805021802986,
+      "c_t": -0.08974358974358974,
+      "d": 0.07692307692307693,
+      "mean_interference": 0.12677926892007005,
+      "total_interference": 0.24941952001021933,
+      "variance": 0.1226402510901493
+    },
+    {
+      "M": 4,
+      "M_times_variance": 0.35312220025568253,
+      "c_t": -0.05238095238095238,
+      "d": 0.047619047619047616,
+      "mean_interference": 0.1830429382362486,
+      "total_interference": 0.2713234883001692,
+      "variance": 0.08828055006392063
+    },
+    {
+      "M": 8,
+      "M_times_variance": 0.4363318387873877,
+      "c_t": -0.028528528528528527,
+      "d": 0.02702702702702703,
+      "mean_interference": 0.22656530789861576,
+      "total_interference": 0.28110678774703923,
+      "variance": 0.05454147984842346
+    },
+    {
+      "M": 16,
+      "M_times_variance": 0.48963669744494653,
+      "c_t": -0.014919011082693947,
+      "d": 0.014492753623188406,
+      "mean_interference": 0.2544808496177867,
+      "total_interference": 0.28508314320809586,
+      "variance": 0.03060229359030916
+    },
+    {
+      "M": 32,
+      "M_times_variance": 0.5201048974181378,
+      "c_t": -0.0076327181590339485,
+      "d": 0.007518796992481203,
+      "mean_interference": 0.2704459188592368,
+      "total_interference": 0.2866991969035536,
+      "variance": 0.016253278044316807
+    },
+    {
+      "M": 64,
+      "M_times_variance": 0.5364396464853735,
+      "c_t": -0.0038608900677866197,
+      "d": 0.0038314176245210726,
+      "mean_interference": 0.2790073550372032,
+      "total_interference": 0.28738922451353716,
+      "variance": 0.00838186947633396
+    },
+    {
+      "M": 128,
+      "M_times_variance": 0.5449034530701151,
+      "c_t": -0.0019417330154588937,
+      "d": 0.0019342359767891683,
+      "mean_interference": 0.28344396075948686,
+      "total_interference": 0.2877010189865971,
+      "variance": 0.004257058227110274
+    },
+    {
+      "M": 256,
+      "M_times_variance": 0.549212336376269,
+      "c_t": -0.0009737079934808832,
+      "d": 0.0009718172983479105,
+      "mean_interference": 0.28570274171523696,
+      "total_interference": 0.2878481024042068,
+      "variance": 0.0021453606889698007
+    },
+    {
+      "M": 1024,
+      "M_times_variance": 0.5524783787258798,
+      "c_t": -0.0002439619129183245,
+      "d": 0.000243842965130456,
+      "mean_interference": 0.28741490414719606,
+      "total_interference": 0.28795443381392055,
+      "variance": 0.000539529666724492
+    },
+    {
+      "M": 4096,
+      "M_times_variance": 0.5532995433002812,
+      "c_t": -6.1023981970678614e-05,
+      "d": 6.101653548111538e-05,
+      "mean_interference": 0.2878453917091586,
+      "total_interference": 0.28798047460547216,
+      "variance": 0.0001350828963135452
+    },
+    {
+      "M": 16384,
+      "M_times_variance": 0.5535051269079276,
+      "c_t": -1.5258090595437872e-05,
+      "d": 1.5257624998092796e-05,
+      "mean_interference": 0.28795316736747245,
+      "total_interference": 0.28798695063937846,
+      "variance": 3.378327190600144e-05
+    },
+    {
+      "M": 65536,
+      "M_times_variance": 0.5535565411138166,
+      "c_t": -3.814653610267892e-06,
+      "d": 3.8146245074366107e-06,
+      "mean_interference": 0.28798012090562747,
+      "total_interference": 0.2879885675081225,
+      "variance": 8.446602495022836e-06
+    },
+    {
+      "M": 262144,
+      "M_times_variance": 0.5535693958096781,
+      "c_t": -9.536715879282162e-07,
+      "d": 9.536697689544251e-07,
+      "mean_interference": 0.28798685989184447,
+      "total_interference": 0.287988971591505,
+      "variance": 2.1116996605288625e-06
+    },
+    {
+      "M": 1048576,
+      "M_times_variance": 0.5535726095551738,
+      "c_t": -2.3841840857140079e-07,
+      "d": 2.38418294884807e-07,
+      "mean_interference": 0.2879885446760069,
+      "total_interference": 0.2879890726039869,
+      "variance": 5.279279799987544e-07
+    }
+  ],
+  "tail_variance_log_log_slope": -0.9986611593947144,
+  "verdict": "supports"
+}
