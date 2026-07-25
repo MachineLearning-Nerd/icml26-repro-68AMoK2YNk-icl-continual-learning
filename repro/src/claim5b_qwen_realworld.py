@@ -133,7 +133,9 @@ def main():
     t0 = time.time()
     device = "cpu"
     import os
-    torch.set_num_threads(min(16, os.cpu_count() or 1))
+    # 4 threads: avoids the CPU threading deadlock observed with 16 threads on the
+    # 1.5B model's generate() on large-vCPU x86 containers.
+    torch.set_num_threads(4)
     tok = AutoTokenizer.from_pretrained(args.model)
     if tok.pad_token is None:
         tok.pad_token = tok.eos_token

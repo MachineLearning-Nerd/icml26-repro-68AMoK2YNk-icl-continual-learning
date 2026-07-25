@@ -1,0 +1,35 @@
+{
+  "1": {
+    "A_baseline": 0.5625,
+    "A_delta": 0.03125,
+    "A_final": 0.59375,
+    "B_baseline": 0.78125,
+    "B_delta": -0.15625,
+    "B_iccl": 0.625,
+    "M": 1,
+    "parsed_frac_A": 0.65625,
+    "parsed_frac_B": 0.8125
+  },
+  "19": {
+    "A_baseline": 0.84375,
+    "A_delta": 0.03125,
+    "A_final": 0.875,
+    "B_baseline": 0.84375,
+    "B_delta": 0.0,
+    "B_iccl": 0.84375,
+    "M": 19,
+    "parsed_frac_A": 0.9375,
+    "parsed_frac_B": 0.9375
+  },
+  "3": {
+    "A_baseline": 0.65625,
+    "A_delta": -0.03125,
+    "A_final": 0.625,
+    "B_baseline": 0.53125,
+    "B_delta": 0.0625,
+    "B_iccl": 0.59375,
+    "M": 3,
+    "parsed_frac_A": 0.75,
+    "parsed_frac_B": 0.875
+  }
+}
