@@ -120,10 +120,10 @@ def accuracy_over(model, tok, device, max_len, max_new, query_items, build_fn, b
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--n-queries", type=int, default=64)
-    ap.add_argument("--M-list", type=int, nargs="+", default=[1, 3, 5, 19])
+    ap.add_argument("--n-queries", type=int, default=32)
+    ap.add_argument("--M-list", type=int, nargs="+", default=[1, 5, 19])
     ap.add_argument("--batch-size", type=int, default=8)
-    ap.add_argument("--max-new", type=int, default=12)
+    ap.add_argument("--max-new", type=int, default=6)
     ap.add_argument("--max-len", type=int, default=4096)
     ap.add_argument("--seed", type=int, default=7)
     ap.add_argument("--model", type=str, default=MODEL)
@@ -190,12 +190,19 @@ def main():
         tc0 = time.time()
         acc_a_base, pa, _ = accuracy_over(model, tok, device, args.max_len, args.max_new,
                                           queries_a, ba, args.batch_size)
+        print(f"  [M={M}] A_baseline={acc_a_base:.3f} ({time.time()-tc0:.0f}s)", flush=True)
+        t1 = time.time()
         acc_b_base, pb, _ = accuracy_over(model, tok, device, args.max_len, args.max_new,
                                           queries_b, bb, args.batch_size)
+        print(f"  [M={M}] B_baseline={acc_b_base:.3f} ({time.time()-t1:.0f}s)", flush=True)
+        t2 = time.time()
         acc_b_iccl, pb2, _ = accuracy_over(model, tok, device, args.max_len, args.max_new,
                                            queries_b, iccl_b, args.batch_size)
+        print(f"  [M={M}] B_iccl={acc_b_iccl:.3f} ({time.time()-t2:.0f}s)", flush=True)
+        t3 = time.time()
         acc_a_final, pa2, _ = accuracy_over(model, tok, device, args.max_len, args.max_new,
                                             queries_a, iccl_a, args.batch_size)
+        print(f"  [M={M}] A_final={acc_a_final:.3f} ({time.time()-t3:.0f}s)", flush=True)
         row.update({"B_baseline": acc_b_base, "B_iccl": acc_b_iccl, "B_delta": acc_b_iccl - acc_b_base,
                     "A_baseline": acc_a_base, "A_final": acc_a_final, "A_delta": acc_a_final - acc_a_base,
                     "parsed_frac_A": pa2, "parsed_frac_B": pb2})
