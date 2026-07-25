@@ -1,0 +1,22 @@
+{
+  "claim": "InContext_ContinualLearning_Thm4.3_nonmonotone",
+  "paper": "arXiv:2605.28705",
+  "aligned_theta0": {
+    "err_M0": 1.0,
+    "err_M1": 0.5004,
+    "err_M40": 0.0252,
+    "monotone_decreasing": true
+  },
+  "misaligned_theta150": {
+    "err_M0": 1.0,
+    "err_M1": 1.1864,
+    "peak_M": 1,
+    "err_peak": 1.1864,
+    "err_M40": 0.9556,
+    "non_monotonic_hurts_then_helps": true
+  },
+  "aligned_is_monotone": true,
+  "misaligned_is_nonmonotone": true,
+  "misaligned_threshold_M": 1,
+  "verdict": "supports"
+}

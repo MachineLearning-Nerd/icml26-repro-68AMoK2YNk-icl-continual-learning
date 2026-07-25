@@ -1,0 +1,40 @@
+{
+  "all_executed": true,
+  "git_sha": "492ee7f7c24bafd63a046ce3043de2bfe20a79e8",
+  "paper": {
+    "arxiv": "2605.28705",
+    "openreview": "68AMoK2YNk"
+  },
+  "platform": "macOS-26.5.2-arm64-arm-64bit",
+  "python": "3.12.11",
+  "verifiers": [
+    {
+      "executed": true,
+      "exit_code": 0,
+      "key": "claims_1_2_3_toy_reference",
+      "module": "verify_iccl",
+      "seconds": 7.031,
+      "title": "Claims 1-3 (toy reference): interference identity, transfer, order/long-prompt",
+      "verdict": "supports"
+    },
+    {
+      "executed": true,
+      "exit_code": 0,
+      "key": "claim_nonmonotone_toy_reference",
+      "module": "verify_incontext",
+      "seconds": 0.002,
+      "title": "Non-monotone in-context error (toy reference, Theorem 4.3 closed form)",
+      "verdict": "supports"
+    },
+    {
+      "executed": true,
+      "exit_code": 0,
+      "key": "claim_4_asymptotics_toy_reference",
+      "module": "verify_claim4_interference_asymptotics",
+      "seconds": 0.002,
+      "title": "Claim 4 (toy reference): O(1/M) variance decay + persistent mean floor",
+      "verdict": "supports"
+    }
+  ],
+  "wall_seconds": 8.438
+}
