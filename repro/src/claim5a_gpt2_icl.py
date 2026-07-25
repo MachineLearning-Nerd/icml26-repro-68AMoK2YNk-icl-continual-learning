@@ -42,21 +42,22 @@ def set_seed(s):
 # ----------------------------------------------------------------------------------------------
 
 class CausalSelfAttention(nn.Module):
-    def __init__(self, d_model, n_heads, dropout=0.0):
+    def __init__(self, d_model, n_heads, dropout=0.0, max_len=4096):
         super().__init__()
         assert d_model % n_heads == 0
         self.n_heads, self.head = n_heads, d_model // n_heads
         self.qkv = nn.Linear(d_model, 3 * d_model)
         self.proj = nn.Linear(d_model, d_model)
         self.drop = nn.Dropout(dropout)
+        mask = torch.triu(torch.ones(max_len, max_len), diagonal=1).bool()
+        self.register_buffer("causal_mask", mask, persistent=False)
 
     def forward(self, x):
         B, T, C = x.shape
         qkv = self.qkv(x).reshape(B, T, 3, self.n_heads, self.head).permute(2, 0, 3, 1, 4)
         q, k, v = qkv[0], qkv[1], qkv[2]           # (B, nh, T, h)
         att = (q @ k.transpose(-2, -1)) / (self.head ** 0.5)
-        mask = torch.triu(torch.ones(T, T, device=x.device), diagonal=1).bool()
-        att = att.masked_fill(mask, float("-inf"))
+        att = att.masked_fill(self.causal_mask[:T, :T], float("-inf"))
         att = self.drop(torch.softmax(att, dim=-1))
         y = att @ v                                   # (B, nh, T, h)
         y = y.transpose(1, 2).reshape(B, T, C)
@@ -119,18 +120,24 @@ def build_single(w, x, y, xq):
 
 
 def sample_single_batch(rng, M, d, B):
-    W = rng.standard_normal((B, d))
-    X = rng.standard_normal((B, M, d))
-    Y = np.einsum("bd,bmd->bm", W, X)
-    Xq = rng.standard_normal((B, d))
-    seqs, pos, tgt = [], [], []
-    for b in range(B):
-        s, p, t = build_single(W[b], X[b], Y[b], Xq[b])
-        seqs.append(s); pos.append(p); tgt.append(t)
-    L = len(s)
-    seqs = np.stack([np.pad(s, (0, L - len(s))) for s in seqs]) if False else np.stack(seqs)
-    return (torch.tensor(np.stack(seqs)), torch.tensor(np.stack(pos)),
-            torch.tensor(np.stack(tgt)), W, Y, Xq)
+    """Vectorized single-task prompt batch. Returns (seq, pos, tgt). seq: (B, M*(d+1)+d)."""
+    W = rng.standard_normal((B, d))                         # (B, d)
+    X = rng.standard_normal((B, M, d))                       # (B, M, d)
+    Y = np.einsum("bd,bmd->bm", W, X)                        # (B, M)
+    Xq = rng.standard_normal((B, d))                         # (B, d)
+    Yq = np.einsum("bd,bd->b", W, Xq)                       # (B,) query labels
+    # build interleaved sequence [x1(d), y1, x2(d), y2, ..., xM(d), yM, xq(d)] per batch row
+    # layout: positions for example i are [i*(d+1) .. i*(d+1)+d-1] (x) then i*(d+1)+d (y)
+    xy = np.empty((B, M, d + 1), dtype=np.float32)
+    xy[:, :, :d] = X
+    xy[:, :, d] = Y
+    seq = np.concatenate([xy.reshape(B, M * (d + 1)), Xq], axis=1).astype(np.float32)
+    ex_pos = np.tile(np.arange(M) * (d + 1) + (d - 1), (B, 1))       # (B, M)
+    q_pos = (M * (d + 1) + d - 1) * np.ones((B, 1), dtype=np.int64)
+    pos = np.concatenate([ex_pos, q_pos], axis=1)                    # (B, M+1)
+    tgt = np.concatenate([Y, Yq[:, None]], axis=1)                   # (B, M+1)
+    return (torch.from_numpy(seq), torch.from_numpy(pos.astype(np.int64)),
+            torch.from_numpy(tgt.astype(np.float32)))
 
 
 def sample_multitask_batch(rng, M, d, T, B):
@@ -178,7 +185,7 @@ def train(args):
     d = args.dim
     t0 = time.time()
     losses = []
-    warmup = min(500, args.steps // 20)
+    warmup = min(1000, args.steps // 10)
     for step in range(1, args.steps + 1):
         # linear warmup then cosine decay
         if step <= warmup:
@@ -192,8 +199,8 @@ def train(args):
         seq, pos, tgt, *_ = sample_single_batch(rng, Mtr, d, args.batch)
         opt.zero_grad()
         pred = model(seq, pos)
-        # loss on example y-positions only (positions 0..M-1), not the query slot
-        loss = F.mse_loss(pred[:, :-1], tgt[:, :-1])
+        # loss on all label positions (examples + query): query is the most learnable signal
+        loss = F.mse_loss(pred, tgt)
         loss.backward()
         torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
         opt.step()
@@ -257,17 +264,17 @@ def classify(results):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--steps", type=int, default=40000)
-    ap.add_argument("--min-steps", dest="min_steps", type=int, default=3000)
+    ap.add_argument("--steps", type=int, default=200000)
+    ap.add_argument("--min-steps", dest="min_steps", type=int, default=8000)
     ap.add_argument("--time-budget-sec", dest="time_budget_sec", type=int, default=9000)
-    ap.add_argument("--dim", type=int, default=5)
+    ap.add_argument("--dim", type=int, default=3)
     ap.add_argument("--d-model", dest="d_model", type=int, default=64)
     ap.add_argument("--depth", type=int, default=3)
     ap.add_argument("--heads", type=int, default=2)
     ap.add_argument("--batch", type=int, default=96)
-    ap.add_argument("--lr", type=float, default=1.5e-3)
+    ap.add_argument("--lr", type=float, default=1e-3)
     ap.add_argument("--wd", type=float, default=1e-4)
-    ap.add_argument("--m-train-min", dest="m_train_min", type=int, default=4)
+    ap.add_argument("--m-train-min", dest="m_train_min", type=int, default=6)
     ap.add_argument("--m-train-max", dest="m_train_max", type=int, default=20)
     ap.add_argument("--T-eval", dest="T_eval", type=int, default=5)
     ap.add_argument("--M-eval", dest="M_eval", type=int, nargs="+", default=[1, 2, 3, 5, 8, 12, 16, 20])
@@ -279,9 +286,9 @@ def main():
     args = ap.parse_args()
     import os, platform
     if args.threads == 0:
-        # The model is tiny (~0.3M params): small matmuls thrash with many threads.
-        # Cap at 8 — past that, thread overhead dominates and steps get slower.
-        args.threads = min(8, os.cpu_count() or 1)
+        # Tiny model: cap threads low to avoid CPU threading hangs/oversubscription
+        # observed on large-vCPU x86 containers. 4 is a robust default.
+        args.threads = min(4, os.cpu_count() or 1)
     torch.set_num_threads(args.threads)
     print(f"CLAIM 5a — GPT-2 ICL training (<= {args.steps} steps, d={args.dim}, "
           f"{args.depth}L/{args.heads}H/{args.d_model}) on CPU")
