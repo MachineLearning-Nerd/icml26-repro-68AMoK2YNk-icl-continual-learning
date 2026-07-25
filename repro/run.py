@@ -95,7 +95,9 @@ def main() -> int:
             entry["seconds"] = None
         except Exception as exc:  # noqa: BLE001
             entry["error"] = f"{type(exc).__name__}: {exc}"
-            entry["traceback"] = traceback.format_exc(limit=6)
+            entry["traceback"] = traceback.format_exc(limit=12)
+            print(f"\n[VERIFIER CRASH] {key}: {type(exc).__name__}: {exc}")
+            print(traceback.format_exc(limit=12))
             entry["executed"] = False
             entry["exit_code"] = 1
             entry["verdict"] = "crashed"

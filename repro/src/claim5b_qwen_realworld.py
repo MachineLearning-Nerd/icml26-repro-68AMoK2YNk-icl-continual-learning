@@ -145,8 +145,8 @@ def main():
     import numpy as np
     rngnp = np.random.default_rng(args.seed)
     print("loading datasets ...", flush=True)
-    sst2 = load_dataset("glue", "sst2", split="validation")
-    agnews = load_dataset("ag_news", split="test")
+    sst2 = load_dataset("stanfordnlp/sst2", split="validation")
+    agnews = load_dataset("fancyzhx/ag_news", split="test")
     # subsample pools
     na = len(sst2); nb = len(agnews)
     a_idx = rngnp.choice(na, size=min(2000, na), replace=False)
