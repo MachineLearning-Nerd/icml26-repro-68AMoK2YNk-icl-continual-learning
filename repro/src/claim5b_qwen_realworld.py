@@ -120,10 +120,10 @@ def accuracy_over(model, tok, device, max_len, max_new, query_items, build_fn, b
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--n-queries", type=int, default=128)
+    ap.add_argument("--n-queries", type=int, default=64)
     ap.add_argument("--M-list", type=int, nargs="+", default=[1, 3, 5, 19])
     ap.add_argument("--batch-size", type=int, default=8)
-    ap.add_argument("--max-new", type=int, default=16)
+    ap.add_argument("--max-new", type=int, default=12)
     ap.add_argument("--max-len", type=int, default=4096)
     ap.add_argument("--seed", type=int, default=7)
     ap.add_argument("--model", type=str, default=MODEL)
@@ -132,7 +132,8 @@ def main():
     print(f"CLAIM 5b — Qwen2.5-1.5B-Instruct ICCL on SST-2 + AG News (CPU)")
     t0 = time.time()
     device = "cpu"
-    torch.set_num_threads(max(1, torch.get_num_threads()))
+    import os
+    torch.set_num_threads(min(16, os.cpu_count() or 1))
     tok = AutoTokenizer.from_pretrained(args.model)
     if tok.pad_token is None:
         tok.pad_token = tok.eos_token
@@ -186,6 +187,7 @@ def main():
             return build_prompt(demos_a, demos_b, q["text"], "Sentiment Analysis", "Positive/Negative")
 
         print(f"\n--- M={M} ---", flush=True)
+        tc0 = time.time()
         acc_a_base, pa, _ = accuracy_over(model, tok, device, args.max_len, args.max_new,
                                           queries_a, ba, args.batch_size)
         acc_b_base, pb, _ = accuracy_over(model, tok, device, args.max_len, args.max_new,
@@ -199,7 +201,12 @@ def main():
                     "parsed_frac_A": pa2, "parsed_frac_B": pb2})
         table[M] = row
         print(f"  Task B: base={acc_b_base:.3f} iccl={acc_b_iccl:.3f} delta={acc_b_iccl-acc_b_base:+.3f}", flush=True)
-        print(f"  Task A: base={acc_a_base:.3f} final={acc_a_final:.3f} delta={acc_a_final-acc_a_base:+.3f}", flush=True)
+        print(f"  Task A: base={acc_a_base:.3f} final={acc_a_final:.3f} delta={acc_a_final-acc_a_base:+.3f} "
+              f"(M={M} took {time.time()-tc0:.0f}s)", flush=True)
+        # incremental save so partial results survive a timeout
+        _odir = Path(__file__).resolve().parents[1] / "outputs"; _odir.mkdir(parents=True, exist_ok=True)
+        (_odir / "claim5b_qwen_realworld_partial.json").write_text(
+            json.dumps({str(k): v for k, v in table.items()}, indent=2, sort_keys=True) + "\n")
 
     # verdict
     m1 = table.get(1, table[args.M_list[0]])
