@@ -38,13 +38,18 @@ if str(SYS_SRC) not in sys.path:
     sys.path.insert(0, str(SYS_SRC))
 
 # Registry of (claim_key, module_name, human_title). Edited per branch.
+# Theory branch: rigorous full-scale verifiers supersede the toy reference checks
+# (the toy modules remain in the repo as historical evidence but are no longer the
+# default verifier). Each rigorous verifier asserts its claim and raises on failure.
 VERIFIERS = [
-    ("claims_1_2_3_toy_reference", "verify_iccl",
-     "Claims 1-3 (toy reference): interference identity, transfer, order/long-prompt"),
-    ("claim_nonmonotone_toy_reference", "verify_incontext",
-     "Non-monotone in-context error (toy reference, Theorem 4.3 closed form)"),
-    ("claim_4_asymptotics_toy_reference", "verify_claim4_interference_asymptotics",
-     "Claim 4 (toy reference): O(1/M) variance decay + persistent mean floor"),
+    ("claim_1_generalization", "claim1_generalization",
+     "Claim 1 (Theorem 4.3): generalization error = irreducible + variance + bias [sympy + MC]"),
+    ("claim_2_forgetting", "claim2_forgetting",
+     "Claim 2 (Theorem 4.4): forgetting reweighting c_t<0/d>0 + variance/mean decomposition"),
+    ("claim_3_nonmonotone", "claim3_nonmonotone",
+     "Claim 3: error(M) non-monotone for misaligned tasks, monotone for aligned"),
+    ("claim_4_asymptotic", "claim4_asymptotic",
+     "Claim 4: variance interference O(1/M); mean-interference persistent floor"),
 ]
 
 

@@ -1,6 +1,6 @@
 {
   "all_executed": true,
-  "git_sha": "492ee7f7c24bafd63a046ce3043de2bfe20a79e8",
+  "git_sha": "2fa4eca5bbf9db3f831ad0d708dd5911b2da8617",
   "paper": {
     "arxiv": "2605.28705",
     "openreview": "68AMoK2YNk"
@@ -11,30 +11,39 @@
     {
       "executed": true,
       "exit_code": 0,
-      "key": "claims_1_2_3_toy_reference",
-      "module": "verify_iccl",
-      "seconds": 7.031,
-      "title": "Claims 1-3 (toy reference): interference identity, transfer, order/long-prompt",
+      "key": "claim_1_generalization",
+      "module": "claim1_generalization",
+      "seconds": 8.58,
+      "title": "Claim 1 (Theorem 4.3): generalization error = irreducible + variance + bias [sympy + MC]",
       "verdict": "supports"
     },
     {
       "executed": true,
       "exit_code": 0,
-      "key": "claim_nonmonotone_toy_reference",
-      "module": "verify_incontext",
-      "seconds": 0.002,
-      "title": "Non-monotone in-context error (toy reference, Theorem 4.3 closed form)",
+      "key": "claim_2_forgetting",
+      "module": "claim2_forgetting",
+      "seconds": 10.758,
+      "title": "Claim 2 (Theorem 4.4): forgetting reweighting c_t<0/d>0 + variance/mean decomposition",
       "verdict": "supports"
     },
     {
       "executed": true,
       "exit_code": 0,
-      "key": "claim_4_asymptotics_toy_reference",
-      "module": "verify_claim4_interference_asymptotics",
-      "seconds": 0.002,
-      "title": "Claim 4 (toy reference): O(1/M) variance decay + persistent mean floor",
+      "key": "claim_3_nonmonotone",
+      "module": "claim3_nonmonotone",
+      "seconds": 2.203,
+      "title": "Claim 3: error(M) non-monotone for misaligned tasks, monotone for aligned",
+      "verdict": "supports"
+    },
+    {
+      "executed": true,
+      "exit_code": 0,
+      "key": "claim_4_asymptotic",
+      "module": "claim4_asymptotic",
+      "seconds": 0.029,
+      "title": "Claim 4: variance interference O(1/M); mean-interference persistent floor",
       "verdict": "supports"
     }
   ],
-  "wall_seconds": 8.438
+  "wall_seconds": 22.358
 }

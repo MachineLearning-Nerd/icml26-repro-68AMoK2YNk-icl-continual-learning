@@ -1,0 +1,103 @@
+{
+  "claim": "Claim 2 \u2014 Theorem 4.4 forgetting: reweighting (c_t<0 past, d>0 future) + intra-task variance + inter-task mean interaction",
+  "route_A_symbolic_coefficients": {
+    "c_t_numerator": "M*(T - t) + T - t + 1  (>0 for 1<=t<=T, M>=0)",
+    "coefficient_c_t_identity_holds": true,
+    "coefficient_d_identity_holds": true
+  },
+  "route_B_exhaustive_signs": {
+    "analytic_argument": "c_t numerator = (T-t)M + (T+1-t) >= (T+1-t) >= 1 > 0 in domain; d = 1/(TM+T+1) > 0",
+    "c_t_negative_violations": 0,
+    "d_positive_violations": 0,
+    "grid_M_up_to": 64,
+    "grid_T_up_to": 20,
+    "total_(T,t,M)_checked": 13650
+  },
+  "route_C_closed_vs_mc_sweep": {
+    "max_closed_vs_mc_rel_err": 0.03646432052470222,
+    "max_closed_vs_paper_err": 2.842170943040401e-14,
+    "sample_records": [
+      {
+        "M": 1,
+        "T": 2,
+        "abs_err": 0.12410936235258818,
+        "closed": 3.4035835733868156,
+        "d": 2,
+        "identity_err": 8.881784197001252e-16,
+        "mc": 3.527692935739404,
+        "paper": 3.4035835733868147,
+        "rel_err": 0.03646432052470222,
+        "t": 1
+      },
+      {
+        "M": 1,
+        "T": 2,
+        "abs_err": 0.0019624468099257164,
+        "closed": 0.11557683235999726,
+        "d": 2,
+        "identity_err": 0.0,
+        "mc": 0.11753927916992297,
+        "paper": 0.11557683235999726,
+        "rel_err": 0.01697958639161447,
+        "t": 2
+      },
+      {
+        "M": 1,
+        "T": 2,
+        "abs_err": 0.003105325806959311,
+        "closed": 0.11557683235999726,
+        "d": 2,
+        "identity_err": 0.0,
+        "mc": 0.11247150655303795,
+        "paper": 0.11557683235999726,
+        "rel_err": 0.026868064676551104,
+        "t": 2
+      },
+      {
+        "M": 2,
+        "T": 2,
+        "abs_err": 0.07663499248225136,
+        "closed": 10.752134315189151,
+        "d": 2,
+        "identity_err": 3.552713678800501e-15,
+        "mc": 10.6754993227069,
+        "paper": 10.752134315189148,
+        "rel_err": 0.0071274214249715875,
+        "t": 1
+      },
+      {
+        "M": 2,
+        "T": 2,
+        "abs_err": 0.003207348537107274,
+        "closed": 0.12921864024560162,
+        "d": 2,
+        "identity_err": 8.326672684688674e-17,
+        "mc": 0.12601129170849434,
+        "paper": 0.12921864024560153,
+        "rel_err": 0.024821098032073177,
+        "t": 2
+      },
+      {
+        "M": 2,
+        "T": 2,
+        "abs_err": 0.0005081322326001281,
+        "closed": 0.12921864024560162,
+        "d": 2,
+        "identity_err": 8.326672684688674e-17,
+        "mc": 0.1287105080130015,
+        "paper": 0.12921864024560153,
+        "rel_err": 0.003932344680568824,
+        "t": 2
+      }
+    ],
+    "sweep_configs": 135,
+    "trials_per_config": 20000
+  },
+  "seconds": 10.75,
+  "source": {
+    "arxiv": "2605.28705",
+    "main_tex_sha256": "026aa3bdb1f7903172b9935e6181123260ff6e4dedc3a24965bfe1ce6e5f97f9",
+    "theorem": "forgetting (Theorem 4.4)"
+  },
+  "verdict": "VERIFIED"
+}
