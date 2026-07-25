@@ -120,7 +120,7 @@ def accuracy_over(model, tok, device, max_len, max_new, query_items, build_fn, b
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--n-queries", type=int, default=32)
+    ap.add_argument("--n-queries", type=int, default=24)
     ap.add_argument("--M-list", type=int, nargs="+", default=[1, 5, 19])
     ap.add_argument("--batch-size", type=int, default=8)
     ap.add_argument("--max-new", type=int, default=6)
@@ -137,6 +137,7 @@ def main():
     tok = AutoTokenizer.from_pretrained(args.model)
     if tok.pad_token is None:
         tok.pad_token = tok.eos_token
+    tok.padding_side = "left"   # REQUIRED for correct batched generation with decoder-only models
     print(f"loading {args.model} (float32, CPU) ...", flush=True)
     model = AutoModelForCausalLM.from_pretrained(args.model, torch_dtype=torch.float32).to(device).eval()
     n_params = sum(p.numel() for p in model.parameters())
