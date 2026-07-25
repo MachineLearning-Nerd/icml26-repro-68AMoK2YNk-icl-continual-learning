@@ -50,6 +50,8 @@ VERIFIERS = [
      "Claim 3: error(M) non-monotone for misaligned tasks, monotone for aligned"),
     ("claim_4_asymptotic", "claim4_asymptotic",
      "Claim 4: variance interference O(1/M); mean-interference persistent floor"),
+    ("claim_5a_gpt2_icl", "claim5a_gpt2_icl",
+     "Claim 5a: GPT-2-architecture ICL non-monotone per-task error vs M (Section 5.1)"),
 ]
 
 
