@@ -277,12 +277,12 @@ def main():
     ap.add_argument("--threads", type=int, default=0)
     ap.add_argument("--log-every", dest="log_every", type=int, default=250)
     args = ap.parse_args()
+    import os, platform
     if args.threads == 0:
         # The model is tiny (~0.3M params): small matmuls thrash with many threads.
         # Cap at 8 — past that, thread overhead dominates and steps get slower.
         args.threads = min(8, os.cpu_count() or 1)
     torch.set_num_threads(args.threads)
-    import os, platform
     print(f"CLAIM 5a — GPT-2 ICL training (<= {args.steps} steps, d={args.dim}, "
           f"{args.depth}L/{args.heads}H/{args.d_model}) on CPU")
     print(f"cpu: {platform.processor()}  cpus_available={os.cpu_count()}  torch_threads={args.threads}  "
