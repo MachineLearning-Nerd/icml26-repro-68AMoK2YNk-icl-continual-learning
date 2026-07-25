@@ -50,6 +50,8 @@ VERIFIERS = [
      "Claim 3: error(M) non-monotone for misaligned tasks, monotone for aligned"),
     ("claim_4_asymptotic", "claim4_asymptotic",
      "Claim 4: variance interference O(1/M); mean-interference persistent floor"),
+    ("claim_5b_qwen_realworld", "claim5b_qwen_realworld",
+     "Claim 5b: Qwen2.5-1.5B-Instruct ICCL on SST-2+AGNews (~46% forgetting) (Section 5.5)"),
 ]
 
 
