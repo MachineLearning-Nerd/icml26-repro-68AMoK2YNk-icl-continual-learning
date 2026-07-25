@@ -193,16 +193,19 @@ def train(args):
         opt.zero_grad()
         pred = model(seq, pos)
         # loss on example y-positions only (positions 0..M-1), not the query slot
-        P = pos.shape[1]
         loss = F.mse_loss(pred[:, :-1], tgt[:, :-1])
         loss.backward()
         torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
         opt.step()
         if step % args.log_every == 0 or step == 1:
-            losses.append({"step": step, "loss": float(loss), "M_train": Mtr})
+            losses.append({"step": step, "loss": float(loss.detach()), "M_train": Mtr})
             dt = time.time() - t0
-            print(f"step {step:>6}/{args.steps}  loss={float(loss):.4f}  M_train={Mtr}  "
+            print(f"step {step:>6}/{args.steps}  loss={float(loss.detach()):.4f}  M_train={Mtr}  "
                   f"({dt/step*1000:.1f}ms/step, {dt:.0f}s elapsed)", flush=True)
+        # time-budget stop (adaptive to CPU speed): leave room for eval
+        if step >= args.min_steps and (time.time() - t0) > args.time_budget_sec:
+            print(f"time budget {args.time_budget_sec}s reached at step {step}; stopping training", flush=True)
+            break
     return model, losses, n_params
 
 
@@ -254,32 +257,38 @@ def classify(results):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--steps", type=int, default=50000)
+    ap.add_argument("--steps", type=int, default=40000)
+    ap.add_argument("--min-steps", dest="min_steps", type=int, default=3000)
+    ap.add_argument("--time-budget-sec", dest="time_budget_sec", type=int, default=9000)
     ap.add_argument("--dim", type=int, default=5)
     ap.add_argument("--d-model", dest="d_model", type=int, default=64)
     ap.add_argument("--depth", type=int, default=3)
     ap.add_argument("--heads", type=int, default=2)
-    ap.add_argument("--batch", type=int, default=128)
-    ap.add_argument("--lr", type=float, default=1e-3)
+    ap.add_argument("--batch", type=int, default=96)
+    ap.add_argument("--lr", type=float, default=1.5e-3)
     ap.add_argument("--wd", type=float, default=1e-4)
     ap.add_argument("--m-train-min", dest="m_train_min", type=int, default=4)
-    ap.add_argument("--m-train-max", dest="m_train_max", type=int, default=40)
+    ap.add_argument("--m-train-max", dest="m_train_max", type=int, default=20)
     ap.add_argument("--T-eval", dest="T_eval", type=int, default=5)
     ap.add_argument("--M-eval", dest="M_eval", type=int, nargs="+", default=[1, 2, 3, 5, 8, 12, 16, 20])
-    ap.add_argument("--eval-batches", dest="eval_batches", type=int, default=40)
+    ap.add_argument("--eval-batches", dest="eval_batches", type=int, default=30)
     ap.add_argument("--eval-batch", dest="eval_batch", type=int, default=64)
     ap.add_argument("--seed", type=int, default=12345)
     ap.add_argument("--threads", type=int, default=0)
-    ap.add_argument("--log-every", dest="log_every", type=int, default=1000)
+    ap.add_argument("--log-every", dest="log_every", type=int, default=250)
     args = ap.parse_args()
     if args.threads == 0:
         args.threads = max(1, torch.get_num_threads())
-    print(f"CLAIM 5a — GPT-2 ICL training ({args.steps} steps, d={args.dim}, "
+    import os, platform
+    print(f"CLAIM 5a — GPT-2 ICL training (<= {args.steps} steps, d={args.dim}, "
           f"{args.depth}L/{args.heads}H/{args.d_model}) on CPU")
+    print(f"cpu: {platform.processor()}  cpus_available={os.cpu_count()}  torch_threads={args.threads}  "
+          f"time_budget={args.time_budget_sec}s", flush=True)
     t0 = time.time()
     model, losses, n_params = train(args)
     train_time = time.time() - t0
-    print(f"training done in {train_time:.0f}s; final loss={losses[-1]['loss']:.4f}")
+    steps_trained = losses[-1]["step"] if losses else 0
+    print(f"training done in {train_time:.0f}s; steps={steps_trained}; final loss={losses[-1]['loss']:.4f}", flush=True)
     ev_t0 = time.time()
     results = evaluate(model, args)
     eval_time = time.time() - ev_t0
@@ -287,11 +296,13 @@ def main():
     out = {
         "claim": "Claim 5a — GPT-2-architecture ICL: non-monotone per-task error vs context length M",
         "source": {"arxiv": "2605.28705", "section": "5.1, Appendix D (model: tiny GPT-2 3L/2H/64)"},
-        "config": {"steps": args.steps, "dim": args.dim, "d_model": args.d_model, "depth": args.depth,
-                   "heads": args.heads, "batch": args.batch, "lr": args.lr, "seed": args.seed,
-                   "params_millions": round(n_params / 1e6, 4), "T_eval": args.T_eval, "M_eval": args.M_eval},
+        "config": {"steps_budget": args.steps, "steps_trained": steps_trained, "dim": args.dim,
+                   "d_model": args.d_model, "depth": args.depth, "heads": args.heads, "batch": args.batch,
+                   "lr": args.lr, "seed": args.seed, "params_millions": round(n_params / 1e6, 4),
+                   "T_eval": args.T_eval, "M_eval": args.M_eval, "time_budget_sec": args.time_budget_sec},
         "training": {"final_loss": losses[-1]["loss"], "loss_curve": losses[::max(1, len(losses)//20)],
-                     "train_seconds": round(train_time, 1), "threads": args.threads},
+                     "train_seconds": round(train_time, 1), "threads": args.threads,
+                     "ms_per_step": round(train_time / max(steps_trained, 1) * 1000, 1)},
         "eval_seconds": round(eval_time, 1),
         "per_task_nmse_vs_M": {str(M): results[M]["per_task_nmse"] for M in sorted(results.keys())},
         "classification": cls,
