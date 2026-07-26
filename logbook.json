@@ -11,58 +11,100 @@
     "icml2026-repro",
     "paper-68AMoK2YNk"
   ],
-  "updated_at": "2026-07-22T16:09:06+00:00",
+  "updated_at": "2026-07-26T18:30:00+00:00",
   "root": {
     "slug": "index",
     "title": "Repro - In-Context Continual Learning",
     "file": "pages/index.md",
     "children": [
       {
+        "slug": "00-iccl-score-summary",
+        "title": "Score & visibility summary (current verification)",
+        "file": "pages/00-iccl-score-summary/page.md",
+        "children": []
+      },
+      {
+        "slug": "claim-1-generalization",
+        "title": "Claim 1 \u2014 Theorem 4.3 generalization [VERIFIED]",
+        "file": "pages/claim-1-generalization/page.md",
+        "children": []
+      },
+      {
+        "slug": "claim-2-forgetting",
+        "title": "Claim 2 \u2014 Theorem 4.4 forgetting [VERIFIED]",
+        "file": "pages/claim-2-forgetting/page.md",
+        "children": []
+      },
+      {
+        "slug": "claim-3-nonmonotone",
+        "title": "Claim 3 \u2014 non-monotone error vs M [VERIFIED]",
+        "file": "pages/claim-3-nonmonotone/page.md",
+        "children": []
+      },
+      {
+        "slug": "claim-4-asymptotic",
+        "title": "Claim 4 \u2014 O(1/M) variance + persistent floor [VERIFIED]",
+        "file": "pages/claim-4-asymptotic/page.md",
+        "children": []
+      },
+      {
+        "slug": "claim-5-experiments",
+        "title": "Claim 5 \u2014 GPT-2 [VERIFIED] + Qwen [divergent]",
+        "file": "pages/claim-5-experiments/page.md",
+        "children": []
+      },
+      {
+        "slug": "methods-rigorous",
+        "title": "Methods, env, commands, provenance",
+        "file": "pages/methods-rigorous/page.md",
+        "children": []
+      },
+      {
         "slug": "claim-1-interference",
-        "title": "Claim 1 \u2014 Interference",
+        "title": "Historical rejected baseline \u2014 Claim 1 (toy)",
         "file": "pages/claim-1-interference/page.md",
         "children": []
       },
       {
         "slug": "claim-2-transfer",
-        "title": "Claim 2 \u2014 Transfer",
+        "title": "Historical rejected baseline \u2014 Claim 2 (toy)",
         "file": "pages/claim-2-transfer/page.md",
         "children": []
       },
       {
         "slug": "claim-3-order-and-prompts",
-        "title": "Claim 3 \u2014 Order and prompts",
+        "title": "Historical rejected baseline \u2014 Claim 3 (toy)",
         "file": "pages/claim-3-order-and-prompts/page.md",
         "children": []
       },
       {
-        "slug": "methods",
-        "title": "Methods",
-        "file": "pages/methods/page.md",
-        "children": []
-      },
-      {
-        "slug": "negative-controls",
-        "title": "Negative controls",
-        "file": "pages/negative-controls/page.md",
-        "children": []
-      },
-      {
-        "slug": "conclusion",
-        "title": "Conclusion",
-        "file": "pages/conclusion/page.md",
-        "children": []
-      },
-      {
         "slug": "claim-nonmonotone-error",
-        "title": "Claim \u2014 non-monotonic in-context error",
+        "title": "Historical rejected baseline \u2014 non-monotone (toy)",
         "file": "pages/claim-nonmonotone-error/page.md",
         "children": []
       },
       {
         "slug": "claim-4-interference-asymptotics",
-        "title": "Claim 4 \u2014 variance decay and persistent mean interference",
+        "title": "Historical rejected baseline \u2014 Claim 4 asymptotics (toy)",
         "file": "pages/claim-4-interference-asymptotics/page.md",
+        "children": []
+      },
+      {
+        "slug": "methods",
+        "title": "Historical rejected baseline \u2014 Methods",
+        "file": "pages/methods/page.md",
+        "children": []
+      },
+      {
+        "slug": "negative-controls",
+        "title": "Historical rejected baseline \u2014 Negative controls",
+        "file": "pages/negative-controls/page.md",
+        "children": []
+      },
+      {
+        "slug": "conclusion",
+        "title": "Historical rejected baseline \u2014 Conclusion",
+        "file": "pages/conclusion/page.md",
         "children": []
       }
     ]
