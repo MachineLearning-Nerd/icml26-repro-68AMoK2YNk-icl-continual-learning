@@ -1,0 +1,27 @@
+[project]
+name = "iccl-repro"
+version = "0.1.0"
+description = "Reproduction of 'Understanding Generalization and Forgetting in In-Context Continual Learning' (arXiv:2605.28705, OpenReview 68AMoK2YNk)."
+requires-python = ">=3.11,<3.13"
+readme = "README.md"
+dependencies = [
+    "numpy>=1.26",
+    "scipy>=1.11",
+    "sympy>=1.12",
+    "matplotlib>=3.8",
+    "pandas>=2.1",
+    # Empirical claims (GPT-2 ICL training + Qwen2.5 real-world ICCL evaluation)
+    "torch>=2.2",
+    "transformers>=4.44",
+    "datasets>=2.20",
+    "scikit-learn>=1.4",
+    "huggingface_hub>=0.24",
+    "accelerate>=0.30",
+    "tqdm>=4.66",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0", "marimo>=0.8"]
+
+[tool.uv]
+# CPU-only reproduction: no CUDA. Use default (CPU) torch wheels.

@@ -1,0 +1,50 @@
+# In-context continual learning: where does the error peak, and why does it persist?
+
+A clean-room reproduction of *Understanding Generalization and Forgetting in In-Context Continual Learning* (OpenReview `68AMoK2YNk`, arXiv 2605.28705).
+
+![headline](images/fig_gpt2_nonmonotone.png)
+
+**The central result, reproduced.** A tiny GPT-2 trained to do in-context linear regression, then evaluated on a *concatenated multi-task* prompt, does not behave like five independent regressions. Task 1 (whose examples sit at the start of the prompt) improves monotonically as you feed it more demonstrations — the familiar "more shots, less variance." But Tasks 4 and 5, which follow other tasks in the prompt, get *worse* before they get better: Task 4 peaks at **M=3**, exactly the "significant peak at intermediate context lengths" the paper reports. This is the empirical signature of the paper's theory, and it falls out of a real softmax-attention transformer — no parameter updates, all inference-time.
+
+## The question
+
+When a single prompt stitches together several tasks and a frozen transformer reads them with one shared attention head, do earlier tasks leak into later ones? Classical continual learning studies *training-time* forgetting (weights drift). Here there are no weight updates — so any "forgetting" must be an artifact of how attention *aggregates* the sequence. The paper formalizes this with two theorems about a masked linear self-attention model at its gradient-flow limit, then checks the qualitative predictions on GPT-2 and on Qwen2.5-1.5B.
+
+## How the theory is verified (not just illustrated)
+
+For a universally-quantified theorem, a handful of small examples is only anecdote. So each theoretical claim is verified by **three independent routes**:
+
+1. **Symbolic reconstruction (sympy).** Starting only from the model's prediction rule `ŷ = x_qᵀ Γ⁻¹ β_t Σ_{s≤t} S_s` and the Gaussian fourth-moment identity, we re-derive the closed form for `E[(ŷ−y)²]` and show — by symbolic simplification, per eigen-coordinate — that it is *identically equal* to the paper's three-term (irreducible + variance + bias) formula. The residual is exactly zero.
+2. **Exhaustive sign algebra.** The forgetting coefficients `c_t` (past tasks) and `d` (future tasks) are checked across **13,650** `(T,t,M)` triples: `c_t<0`, `d>0` with zero violations, backed by the analytic fact that the numerator `(T−t)M+(T+1−t) ≥ 1`.
+3. **Broad Monte-Carlo.** The closed form matches raw sampling of the prediction rule over hundreds of random configurations (e.g. 360 configs for Claim 1; the closed form agrees with the paper's formula to **7.8e-14**, and with Monte-Carlo within sampling error).
+
+![claim1](images/fig_claim1_identity.png)
+
+## The mechanism: variance dies, bias doesn't
+
+The error's two pieces have opposite fates as the context length `M` grows.
+
+![asymptotic](images/fig_theory_asymptotic.png)
+
+The variance piece is multiplied by `α² ~ 1/M²` while gaining one factor of `M`, so it decays as **O(1/M)** (log-log slope −0.999 over six orders of magnitude in M). The mean-misalignment piece is multiplied by `M²α² ~ O(1)`, so it **plateaus at a positive constant** — a permanent forgetting floor that no amount of context can remove *when the tasks are genuinely different*. The negative control (all task means aligned) drives the floor to zero, confirming the floor is specifically a misalignment effect.
+
+## Why the error peaks in the middle
+
+![nonmonotone](images/fig_theory_nonmonotone.png)
+
+At modest training prompt length `N` and with misaligned historical tasks, the bias term *grows* with `M` (more misaligned history gets weighted in) while the variance term is still high — so the total error rises, peaks at an intermediate `M`, and only recovers once variance reduction dominates. Aligned tasks, and single-task prompts (no inter-task bias), are monotone-decreasing — both are clean negative controls (fraction 1.00 across 780 configs). The GPT-2 experiment above is the empirical instance of this curve.
+
+## What did *not* reproduce, and what that means
+
+The paper's most eye-catching number is a **46% accuracy drop** on SST-2 when AG News demonstrations are appended (Qwen2.5-1.5B, Table 2). Our faithful re-run of that exact protocol (same model, same two datasets, the paper's prompt template, `M∈{1,5,19}`) does **not** reproduce a catastrophic drop: Task-A accuracy at M=1 is essentially unchanged (0.875 → 0.917), and even a pure-ICCL variant with no task-name hint shows only a ~5% drop.
+
+We do **not** claim the paper is wrong. The most likely contributors: an instruction-tuned 1.5B model can override attention interference when the final query carries an explicit task header; the original demonstrations and exact decoding are unreleased; and model weights drift between revisions. We report this as an honest divergence — the GPT-2 half of the experiments (Claim 5a) reproduces cleanly, the Qwen headline number (5b) does not.
+
+## Assessment
+
+| | Theory (1–4) | GPT-2 ICL (5a) | Qwen real-world (5b) |
+|---|---|---|---|
+| Status | **VERIFIED** | **VERIFIED** | divergent (not reproduced) |
+| Evidence | sympy identity + 13,650 sign checks + 590-config MC | tiny GPT-2, 34k steps, Task-4 peak at M=3 | Qwen2.5-1.5B, ≤8% drop vs 46% reported |
+
+Relevant branches: [theory 1–4](https://github.com/MachineLearning-Nerd/icml26-repro-68AMoK2YNk-icl-continual-learning/tree/orx/theory-rigorous-verification-of-claims-1-4) · [GPT-2 5a](https://github.com/MachineLearning-Nerd/icml26-repro-68AMoK2YNk-icl-continual-learning/tree/orx/empirical-gpt-2-icl-non-monotone-claim-5a) · [Qwen 5b](https://github.com/MachineLearning-Nerd/icml26-repro-68AMoK2YNk-icl-continual-learning/tree/orx/empirical-qwen2-5-1-5b-real-world-iccl-claim-5b).
