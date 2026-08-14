@@ -9,16 +9,21 @@ The harness `repro/run.py` discovers the claim verifiers committed on the branch
 ## Pinned environment (uv-managed, one repo-level `.venv`)
 Python 3.12 · numpy 2.5.1 · scipy 1.18.0 · sympy 1.14.0 · matplotlib 3.11.1 · pandas 3.0.5 · **torch 2.13.0 (CPU)** · transformers 5.14.1 · datasets 5.0.0 · huggingface_hub · accelerate · tqdm. Locked in `pyproject.toml` + `uv.lock`.
 
-## Experiment tree (OpenResearch `orx`)
+## Experiment tree and branch provenance
 | Branch | Purpose | Run | Backend | Wall |
 |---|---|---|---|---|
-| `orx/baseline-uv-env-toy-reference` (`2fa4eca`) | env + toy reference | 711f869d | local | 15s |
-| `orx/theory-rigorous-verification-of-claims-1-4` (`d21038e`) | claims 1–4 rigorous | a294fef0 | local | ~40s |
-| `orx/empirical-gpt-2-icl-non-monotone-claim-5a` (`a335e8c`) | GPT-2 ICL | dee18666 | HF cpu-upgrade | 2h32m |
-| `orx/empirical-qwen2-5-1-5b-real-world-iccl-claim-5b` (`d17e68b`) | Qwen ICCL | 562de57a | local* | ~32m |
-| `orx/release-publication-hf-space-github-report` | this artifact | — | — | — |
+| `baseline/toy-reference` (`2fa4eca`) | env + toy reference | 711f869d | local | 15s |
+| `audit/theory-claims-1-4` (`d21038e`) | claims 1–4 rigorous | a294fef0 | local | ~40s |
+| `experiment/gpt2-claim-5a` (`a335e8c`) | GPT-2 ICL | dee18666 | HF cpu-upgrade | 2h32m |
+| `experiment/qwen-claim-5b` (`d17e68b`) | Qwen ICCL | 562de57a | local* | ~32m |
+| `release/publication` | this artifact | — | — | — |
 
 \* HF pre-paid credits exhausted (HTTP 402) after the GPT-2 run; claim 5b used the orx local backend (model weights from HF Hub). Documented deviation.
+
+The C1–C4 rows are locally regenerable. The C5 rows identify retained external
+runs; their raw later artifacts are not part of this GitHub clone. The committed
+C5 JSON files are partial snapshots and are classified separately in
+`docs/CLAIM_AUDIT.md`.
 
 ## Compute policy (per task)
 - Claims 1–4 (closed-form + MC): local CPU, single-node, <1 min total. Estimates: ≤1 core, <5 min → local.

@@ -10,7 +10,7 @@ E[(Ŷ−ŷ)²] = Σ_i α_i² tr[(MΣ_i + M²μ_iμ_iᵀ)Γ⁻²Λ]  +  M² Σ_{i
 ```
 i.e. forgetting decomposes into **intra-task variance** and **inter-task mean-interaction** terms; it arises from reweighting, not information loss. Paper: Theorem `forgetting` (Sec 4.2), lines 383–427.
 
-**Verdict: VERIFIED** (HIGH confidence).
+**Verdict: VERIFIED_SCOPED** (HIGH confidence within the finite audit scope).
 
 ## Verification routes
 
@@ -32,7 +32,7 @@ i.e. forgetting decomposes into **intra-task variance** and **inter-task mean-in
 ## Commands, env, provenance
 - Command: `uv run python repro/src/claim2_forgetting.py`. Env: Python 3.12, sympy 1.14.0.
 - Run: `a294fef0` (local). Seeds `20243, 7000+`. Wall ~11s.
-- Code: [`claim2_forgetting.py`](https://github.com/MachineLearning-Nerd/icml26-repro-68AMoK2YNk-icl-continual-learning/blob/orx/theory-rigorous-verification-of-claims-1-4/repro/src/claim2_forgetting.py). Raw JSON: `repro/outputs/claim2_forgetting.json`. Verifier exits nonzero on failure.
+- Code: [`claim2_forgetting.py`](https://github.com/MachineLearning-Nerd/icml26-in-context-continual-learning/blob/audit/theory-claims-1-4/repro/src/claim2_forgetting.py). Raw JSON: `repro/outputs/claim2_forgetting.json`. Verifier exits nonzero on failure.
 
 ## Limitations
 The interference quantity is a *prediction-drift* (Δ between task-t and final predictions), exactly the paper's definition. The intra-/inter-task decomposition follows by expanding `E[UUᵀ]` via the moment lemma (verified in Claim 1, route B).

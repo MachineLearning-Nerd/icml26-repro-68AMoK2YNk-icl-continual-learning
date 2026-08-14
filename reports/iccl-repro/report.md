@@ -4,7 +4,11 @@ A clean-room reproduction of *Understanding Generalization and Forgetting in In-
 
 ![headline](images/fig_gpt2_nonmonotone.png)
 
-**The central result, reproduced.** A tiny GPT-2 trained to do in-context linear regression, then evaluated on a *concatenated multi-task* prompt, does not behave like five independent regressions. Task 1 (whose examples sit at the start of the prompt) improves monotonically as you feed it more demonstrations — the familiar "more shots, less variance." But Tasks 4 and 5, which follow other tasks in the prompt, get *worse* before they get better: Task 4 peaks at **M=3**, exactly the "significant peak at intermediate context lengths" the paper reports. This is the empirical signature of the paper's theory, and it falls out of a real softmax-attention transformer — no parameter updates, all inference-time.
+**The central theory result, verified in scope.** The clean-room theorem audit
+shows that a masked-attention model can exhibit variance reduction, task-mean
+bias, and persistent interference. A later retained GPT-2 report describes the
+same qualitative non-monotone curve, but its raw 34k-step artifact is not in this
+repository and is therefore not counted as fresh-clone evidence.
 
 ## The question
 
@@ -36,15 +40,15 @@ At modest training prompt length `N` and with misaligned historical tasks, the b
 
 ## What did *not* reproduce, and what that means
 
-The paper's most eye-catching number is a **46% accuracy drop** on SST-2 when AG News demonstrations are appended (Qwen2.5-1.5B, Table 2). Our faithful re-run of that exact protocol (same model, same two datasets, the paper's prompt template, `M∈{1,5,19}`) does **not** reproduce a catastrophic drop: Task-A accuracy at M=1 is essentially unchanged (0.875 → 0.917), and even a pure-ICCL variant with no task-name hint shows only a ~5% drop.
+The paper's most eye-catching number is a **46% accuracy drop** on SST-2 when AG News demonstrations are appended (Qwen2.5-1.5B, Table 2). The retained report of a later run of that protocol does **not** reproduce a catastrophic drop: Task-A accuracy at M=1 is essentially unchanged (0.875 → 0.917), and even a pure-ICCL variant with no task-name hint shows only a ~5% drop. The raw 1.5B run artifact is not committed.
 
-We do **not** claim the paper is wrong. The most likely contributors: an instruction-tuned 1.5B model can override attention interference when the final query carries an explicit task header; the original demonstrations and exact decoding are unreleased; and model weights drift between revisions. We report this as an honest divergence — the GPT-2 half of the experiments (Claim 5a) reproduces cleanly, the Qwen headline number (5b) does not.
+We do **not** claim the paper is wrong. The most likely contributors: an instruction-tuned 1.5B model can override attention interference when the final query carries an explicit task header; the original demonstrations and exact decoding are unreleased; and model weights drift between revisions. We report this as an honest divergence — the retained GPT-2 report (Claim 5a) describes the expected curve, but its raw 34k-step artifact is absent; the Qwen headline number (5b) does not match the retained 1.5B report.
 
 ## Assessment
 
 | | Theory (1–4) | GPT-2 ICL (5a) | Qwen real-world (5b) |
 |---|---|---|---|
-| Status | **VERIFIED** | **VERIFIED** | divergent (not reproduced) |
-| Evidence | sympy identity + 13,650 sign checks + 590-config MC | tiny GPT-2, 34k steps, Task-4 peak at M=3 | Qwen2.5-1.5B, ≤8% drop vs 46% reported |
+| Status | **VERIFIED_SCOPED** | retained report only | divergent retained report |
+| Evidence | sympy identity + 13,650 sign checks + generated C1–C4 JSON | report says tiny GPT-2, 34k steps, Task-4 peak at M=3; committed JSON is 50-step `PARTIAL` | report says Qwen2.5-1.5B, ≤8% drop vs 46% reported; committed JSON is 0.5B `PARTIAL` |
 
-Relevant branches: [theory 1–4](https://github.com/MachineLearning-Nerd/icml26-repro-68AMoK2YNk-icl-continual-learning/tree/orx/theory-rigorous-verification-of-claims-1-4) · [GPT-2 5a](https://github.com/MachineLearning-Nerd/icml26-repro-68AMoK2YNk-icl-continual-learning/tree/orx/empirical-gpt-2-icl-non-monotone-claim-5a) · [Qwen 5b](https://github.com/MachineLearning-Nerd/icml26-repro-68AMoK2YNk-icl-continual-learning/tree/orx/empirical-qwen2-5-1-5b-real-world-iccl-claim-5b).
+Relevant branches: [theory 1–4](https://github.com/MachineLearning-Nerd/icml26-in-context-continual-learning/tree/audit/theory-claims-1-4) · [GPT-2 5a](https://github.com/MachineLearning-Nerd/icml26-in-context-continual-learning/tree/experiment/gpt2-claim-5a) · [Qwen 5b](https://github.com/MachineLearning-Nerd/icml26-in-context-continual-learning/tree/experiment/qwen-claim-5b).

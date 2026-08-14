@@ -1,0 +1,58 @@
+{
+  "artifacts": {
+    "repro/outputs/claim1_generalization.json": "4b2d2bef705c5d584385938608ff755aa7b0580c1472194cdad54a4614c61d21",
+    "repro/outputs/claim2_forgetting.json": "a6aa868e1083e880531b672a0c05cd95effede52b6f940a24523e1deeba2b8be",
+    "repro/outputs/claim3_nonmonotone.json": "de6ce1a44e5b8cb2d86861cdaa1566555357cfc42c35a48a5c0a38cc3d99c296",
+    "repro/outputs/claim4_asymptotic.json": "f614b216e0c3c1bc0f214b72adb916457253ff86a08be3e64974dd2dca9a6303",
+    "repro/outputs/claim5a_gpt2_icl.json": "fa25726728d68c63ec6d5f38353bffa691fac2ebd38e1ff3ca40c20b17fb85a3",
+    "repro/outputs/claim5b_qwen_realworld.json": "ab5b266d316090bf7a5befc9fdb8d263bd3058abeb06e031ec0d8e2e8774bf62",
+    "source/main.tex": "026aa3bdb1f7903172b9935e6181123260ff6e4dedc3a24965bfe1ce6e5f97f9"
+  },
+  "claim_outcomes": {
+    "c1_theorem_4_3_generalization": "VERIFIED_SCOPED",
+    "c2_theorem_4_4_forgetting": "VERIFIED_SCOPED",
+    "c3_nonmonotone_context_effect": "VERIFIED_SCOPED",
+    "c4_asymptotic_interference_floor": "VERIFIED_SCOPED",
+    "c5a_tiny_gpt2": "RETAINED_REPORT_ONLY_NOT_REGENERABLE",
+    "c5b_qwen_real_world_iccl": "DIVERGENT_RETAINED_REPORT_NOT_REGENERABLE"
+  },
+  "evidence_release_gate": "PASSED",
+  "external_verdict": {
+    "forecast_is_official": false,
+    "forecast_points": 8,
+    "last_recorded_points": 4,
+    "possible_points": 10,
+    "score_increase_claimed": false
+  },
+  "limitations": [
+    "C1-C4 are finite formula and synthetic checks, not machine-checked universal proofs.",
+    "The later 34k-step GPT-2 report has no committed checkpoint or raw metric table.",
+    "The later Qwen2.5-1.5B report has no committed raw artifact; the committed JSON is an earlier 0.5B partial snapshot."
+  ],
+  "local_contract": {
+    "c5a_committed_snapshot": "PARTIAL_50_STEP_RUN",
+    "c5b_committed_snapshot": "PARTIAL_QWEN_0.5B_32_QUERY_RUN",
+    "focused_tests": 4,
+    "theorem_claims_verified": 4
+  },
+  "overall_status": "VERIFIED_SCOPED_WITH_UNREPRODUCED_EXPERIMENTS",
+  "paper": {
+    "arxiv": "2605.28705",
+    "authors": [
+      "Guangyu Li",
+      "Meng Ding",
+      "Lijie Hu"
+    ],
+    "openreview": "68AMoK2YNk",
+    "title": "Understanding Generalization and Forgetting in In-Context Continual Learning"
+  },
+  "repository": "MachineLearning-Nerd/icml26-in-context-continual-learning",
+  "schema_version": 1,
+  "source": {
+    "main_tex_sha256": "026aa3bdb1f7903172b9935e6181123260ff6e4dedc3a24965bfe1ce6e5f97f9",
+    "source_tar_present": false,
+    "source_tar_recorded_sha256": "c28cca01207449b7dea91544161b5f8c764ef1001f729efd17073ba7b4101210"
+  },
+  "status": "passed",
+  "strict_paper_level_gate": "NOT_READY"
+}

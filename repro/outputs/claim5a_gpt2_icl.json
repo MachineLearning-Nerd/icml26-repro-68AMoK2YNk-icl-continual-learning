@@ -1,0 +1,112 @@
+{
+  "claim": "Claim 5a \u2014 GPT-2-architecture ICL: non-monotone per-task error vs context length M",
+  "classification": {
+    "any_later_task_interior_peak": false,
+    "later_tasks": [
+      {
+        "argmax_M": 1,
+        "end": 1.031513770421346,
+        "peak": 1.237673044204712,
+        "peaked": false,
+        "start": 1.237673044204712,
+        "task": 2
+      },
+      {
+        "argmax_M": 1,
+        "end": 0.9366184075673422,
+        "peak": 1.0482806364695232,
+        "peaked": false,
+        "start": 1.0482806364695232,
+        "task": 3
+      },
+      {
+        "argmax_M": 1,
+        "end": 1.0309696197509766,
+        "peak": 1.152875264485677,
+        "peaked": false,
+        "start": 1.152875264485677,
+        "task": 4
+      },
+      {
+        "argmax_M": 12,
+        "end": 1.0885393619537354,
+        "peak": 1.0885393619537354,
+        "peaked": false,
+        "start": 0.8631025155385336,
+        "task": 5
+      }
+    ],
+    "task1_monotone_decreasing": true
+  },
+  "config": {
+    "M_eval": [
+      1,
+      5,
+      12
+    ],
+    "T_eval": 5,
+    "batch": 96,
+    "d_model": 64,
+    "depth": 3,
+    "dim": 3,
+    "heads": 2,
+    "lr": 0.001,
+    "params_millions": 0.2813,
+    "seed": 12345,
+    "steps_budget": 50,
+    "steps_trained": 50,
+    "time_budget_sec": 60
+  },
+  "eval_seconds": 0.3,
+  "per_task_nmse_vs_M": {
+    "1": [
+      1.0052977403004963,
+      1.237673044204712,
+      1.0482806364695232,
+      1.152875264485677,
+      0.8631025155385336
+    ],
+    "12": [
+      0.9507044951121012,
+      1.031513770421346,
+      0.9366184075673422,
+      1.0309696197509766,
+      1.0885393619537354
+    ],
+    "5": [
+      0.9893484910329183,
+      1.0391271114349365,
+      0.9565872351328532,
+      1.0423039595286052,
+      1.0536422729492188
+    ]
+  },
+  "source": {
+    "arxiv": "2605.28705",
+    "section": "5.1, Appendix D (model: tiny GPT-2 3L/2H/64)"
+  },
+  "training": {
+    "final_loss": 2.765793561935425,
+    "loss_curve": [
+      {
+        "M_train": 16,
+        "loss": 3.632486581802368,
+        "step": 1
+      },
+      {
+        "M_train": 10,
+        "loss": 3.020620822906494,
+        "step": 25
+      },
+      {
+        "M_train": 16,
+        "loss": 2.765793561935425,
+        "step": 50
+      }
+    ],
+    "ms_per_step": 44.1,
+    "threads": 4,
+    "train_seconds": 2.2
+  },
+  "verdict": "PARTIAL"
+}

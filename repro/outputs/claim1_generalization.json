@@ -1,0 +1,106 @@
+{
+  "claim": "Claim 1 \u2014 Theorem 4.3 generalization: irreducible + variance(O(M/(t^2(M+1)^2))) + bias",
+  "route_A_symbolic_identity": {
+    "bias_coordinate_identity_is_zero": true,
+    "variance_coefficient_identity_is_zero": true
+  },
+  "route_B_moment_lemma_mc": {
+    "configs_cells_checked": 71,
+    "max_relative_error": 0.01590692280691646,
+    "trials_per_cell": 40000
+  },
+  "route_C_closed_vs_mc_sweep": {
+    "max_closed_vs_mc_abs_err": 1.2097155932368224,
+    "max_closed_vs_mc_rel_err": 0.04284097751515972,
+    "max_closed_vs_paper_err": 7.815970093361102e-14,
+    "sample_records": [
+      {
+        "M": 1,
+        "T": 2,
+        "abs_err": 0.13144750119510995,
+        "closed": 8.877350802350078,
+        "d": 2,
+        "identity_err": 1.7763568394002505e-15,
+        "mc": 9.008798303545188,
+        "paper": 8.877350802350076,
+        "rel_err": 0.014807063967812582,
+        "rep": 0,
+        "t": 1
+      },
+      {
+        "M": 1,
+        "T": 2,
+        "abs_err": 0.10765970569559968,
+        "closed": 12.154948275718347,
+        "d": 2,
+        "identity_err": 3.552713678800501e-15,
+        "mc": 12.262607981413947,
+        "paper": 12.15494827571835,
+        "rel_err": 0.008857273865218245,
+        "rep": 0,
+        "t": 2
+      },
+      {
+        "M": 1,
+        "T": 2,
+        "abs_err": 0.1413167206597059,
+        "closed": 12.154948275718347,
+        "d": 2,
+        "identity_err": 3.552713678800501e-15,
+        "mc": 12.013631555058641,
+        "paper": 12.15494827571835,
+        "rel_err": 0.011626270836710263,
+        "rep": 0,
+        "t": 2
+      },
+      {
+        "M": 1,
+        "T": 2,
+        "abs_err": 0.14348428155719262,
+        "closed": 6.559009976861177,
+        "d": 2,
+        "identity_err": 2.6645352591003757e-15,
+        "mc": 6.415525695303985,
+        "paper": 6.559009976861175,
+        "rel_err": 0.021875905367330636,
+        "rep": 1,
+        "t": 1
+      },
+      {
+        "M": 1,
+        "T": 2,
+        "abs_err": 0.03271151611852874,
+        "closed": 3.6310686493574,
+        "d": 2,
+        "identity_err": 1.7763568394002505e-15,
+        "mc": 3.6637801654759286,
+        "paper": 3.631068649357398,
+        "rel_err": 0.009008784817196388,
+        "rep": 1,
+        "t": 2
+      },
+      {
+        "M": 1,
+        "T": 2,
+        "abs_err": 0.06271971390360376,
+        "closed": 3.6310686493574,
+        "d": 2,
+        "identity_err": 1.7763568394002505e-15,
+        "mc": 3.6937883632610036,
+        "paper": 3.631068649357398,
+        "rel_err": 0.017273073015213698,
+        "rep": 1,
+        "t": 2
+      }
+    ],
+    "sweep_configs": 360,
+    "trials_per_config": 6000
+  },
+  "seconds": 4.6,
+  "source": {
+    "arxiv": "2605.28705",
+    "main_tex_sha256": "026aa3bdb1f7903172b9935e6181123260ff6e4dedc3a24965bfe1ce6e5f97f9",
+    "theorem": "thm-generalization (Theorem 4.3)"
+  },
+  "verdict": "VERIFIED"
+}

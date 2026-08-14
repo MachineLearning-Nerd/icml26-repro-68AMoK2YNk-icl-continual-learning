@@ -1,0 +1,190 @@
+{
+  "claim": "Claim 3 \u2014 error(M) non-monotone (interior peak) for misaligned tasks; monotone-decreasing for aligned / large-N",
+  "mechanism_demo_bias_rises_variance_falls": [
+    {
+      "M": 1,
+      "bias": 1.1127419646674306,
+      "error": 1.236708906816191,
+      "variance": 0.1239669421487603
+    },
+    {
+      "M": 2,
+      "bias": 1.1574330776925672,
+      "error": 1.267625915158132,
+      "variance": 0.11019283746556471
+    },
+    {
+      "M": 3,
+      "bias": 1.1811118451056342,
+      "error": 1.2740870517172045,
+      "variance": 0.09297520661157023
+    },
+    {
+      "M": 5,
+      "bias": 1.2056794197857004,
+      "error": 1.2745499432016782,
+      "variance": 0.06887052341597795
+    },
+    {
+      "M": 8,
+      "bias": 1.222551584720744,
+      "error": 1.2715261791498838,
+      "variance": 0.04897459442913987
+    },
+    {
+      "M": 12,
+      "bias": 1.2331307994616463,
+      "error": 1.2683403451607025,
+      "variance": 0.035209545699056176
+    },
+    {
+      "M": 18,
+      "bias": 1.2407385171351382,
+      "error": 1.2654632258185474,
+      "variance": 0.024724708683409258
+    },
+    {
+      "M": 25,
+      "bias": 1.2452112293414808,
+      "error": 1.2635495343930725,
+      "variance": 0.01833830505159176
+    }
+  ],
+  "scope_note": "Theorem 4.3 is monotone-decreasing for aligned tasks and for single-task (t=1, no inter-task bias) at any N. Interior peaks emerge in the multi-task (t>=2) misaligned regime where the bias term is M-sensitive (strongest at small N). Pronounced peaks in the paper's GPT-2 experiments are reproduced in Claim 5.",
+  "seconds": 0.66,
+  "source": {
+    "arxiv": "2605.28705",
+    "sections": "Section 4 (Context Length), 5.1"
+  },
+  "sweep": {
+    "misaligned_multitask_peak_count": 47,
+    "misaligned_multitask_peak_fraction": 0.1865079365079365,
+    "misaligned_multitask_total": 252,
+    "negative_control_aligned_monotone_fraction": 1.0,
+    "negative_control_single_task_monotone_fraction": 1.0,
+    "peaked_examples": [
+      {
+        "N": 4,
+        "T": 3,
+        "d": 2,
+        "err_M1": 1.1088435374149659,
+        "err_M30": 1.112128097857249,
+        "err_peak": 1.1224489795918366,
+        "peak_M": 3,
+        "rise_pct": 0.012269938650306763,
+        "t": 3,
+        "theta_deg": 120
+      },
+      {
+        "N": 6,
+        "T": 3,
+        "d": 2,
+        "err_M1": 1.1481481481481481,
+        "err_M30": 1.1526187998612556,
+        "err_peak": 1.1666666666666665,
+        "peak_M": 3,
+        "rise_pct": 0.016129032258064394,
+        "t": 3,
+        "theta_deg": 120
+      },
+      {
+        "N": 6,
+        "T": 3,
+        "d": 2,
+        "err_M1": 1.2299681110860434,
+        "err_M30": 1.292461972728574,
+        "err_peak": 1.2928926016866713,
+        "peak_M": 14,
+        "rise_pct": 0.05115944879665742,
+        "t": 3,
+        "theta_deg": 135
+      },
+      {
+        "N": 8,
+        "T": 3,
+        "d": 2,
+        "err_M1": 1.1763085399449036,
+        "err_M30": 1.1816289849588495,
+        "err_peak": 1.1983471074380163,
+        "peak_M": 3,
+        "rise_pct": 0.018735362997657892,
+        "t": 3,
+        "theta_deg": 120
+      },
+      {
+        "N": 8,
+        "T": 3,
+        "d": 2,
+        "err_M1": 1.2645523842704849,
+        "err_M30": 1.3303855175368327,
+        "err_peak": 1.3317592916714383,
+        "peak_M": 10,
+        "rise_pct": 0.053146795844068374,
+        "t": 3,
+        "theta_deg": 135
+      },
+      {
+        "N": 10,
+        "T": 3,
+        "d": 2,
+        "err_M1": 1.1972386587771202,
+        "err_M30": 1.2031907098744528,
+        "err_peak": 1.22189349112426,
+        "peak_M": 3,
+        "rise_pct": 0.02059308072487627,
+        "t": 3,
+        "theta_deg": 120
+      },
+      {
+        "N": 10,
+        "T": 3,
+        "d": 2,
+        "err_M1": 1.2898307765988508,
+        "err_M30": 1.3577470576126296,
+        "err_peak": 1.360075820960862,
+        "peak_M": 9,
+        "rise_pct": 0.05446066696225077,
+        "t": 3,
+        "theta_deg": 135
+      },
+      {
+        "N": 50,
+        "T": 3,
+        "d": 2,
+        "err_M1": 1.1688293660999873,
+        "err_M30": 1.1013763686975981,
+        "err_peak": 1.1697801686882117,
+        "peak_M": 2,
+        "rise_pct": 0.000813465691229899,
+        "t": 3,
+        "theta_deg": 105
+      },
+      {
+        "N": 50,
+        "T": 3,
+        "d": 2,
+        "err_M1": 1.2966654800047466,
+        "err_M30": 1.3056179242504673,
+        "err_peak": 1.3337486650053396,
+        "peak_M": 3,
+        "rise_pct": 0.028598883499587956,
+        "t": 3,
+        "theta_deg": 120
+      },
+      {
+        "N": 50,
+        "T": 3,
+        "d": 2,
+        "err_M1": 1.4064408396780086,
+        "err_M30": 1.4810041240980836,
+        "err_peak": 1.4900456628520697,
+        "peak_M": 6,
+        "rise_pct": 0.059444251628246014,
+        "t": 3,
+        "theta_deg": 135
+      }
+    ],
+    "total_configs": 780
+  },
+  "verdict": "VERIFIED"
+}

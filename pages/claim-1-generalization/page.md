@@ -11,7 +11,7 @@ E[(ŷ_{t,q} − y_{t,q})²]  =  irreducible
 with `α = M/(t(M+1))`, `s_i = v_iᵀ Σ_{s≤t} μ_s`, `m_i = v_iᵀ μ_t`, `Γ = (1+1/N)Λ + (trΛ/N)I`.
 Paper: Theorem `thm-generalization` (Sec 4.1), `source/main.tex` lines 315–332.
 
-**Verdict: VERIFIED** (HIGH confidence).
+**Verdict: VERIFIED_SCOPED** (HIGH confidence within the finite audit scope).
 
 ## Source audit
 - arXiv 2605.28705v1; `source/main.tex` SHA-256 `026aa3bdb1f7903172b9935e6181123260ff6e4dedc3a24965bfe1ce6e5f97f9`.
@@ -43,7 +43,7 @@ The literal appendix denominator `T+M+1` (a documented typo) is rejected: it fai
 - Command: `uv run python repro/src/claim1_generalization.py` (or via harness `uv run python repro/run.py`).
 - Env: Python 3.12, numpy 2.5.1, sympy 1.14.0 (uv lock).
 - Run: `a294fef0` (local). Seeds `20241, 20242, 9000+`. Wall ~5s.
-- Code: [`theory_core.py`](https://github.com/MachineLearning-Nerd/icml26-repro-68AMoK2YNk-icl-continual-learning/blob/orx/theory-rigorous-verification-of-claims-1-4/repro/src/theory_core.py), [`claim1_generalization.py`](https://github.com/MachineLearning-Nerd/icml26-repro-68AMoK2YNk-icl-continual-learning/blob/orx/theory-rigorous-verification-of-claims-1-4/repro/src/claim1_generalization.py) · Raw JSON: `repro/outputs/claim1_generalization.json`.
+- Code: [`theory_core.py`](https://github.com/MachineLearning-Nerd/icml26-in-context-continual-learning/blob/audit/theory-claims-1-4/repro/src/theory_core.py), [`claim1_generalization.py`](https://github.com/MachineLearning-Nerd/icml26-in-context-continual-learning/blob/audit/theory-claims-1-4/repro/src/claim1_generalization.py) · Raw JSON: `repro/outputs/claim1_generalization.json`.
 - Verifier exits **nonzero** on failure (assertions).
 
 ## Limitations / deviations

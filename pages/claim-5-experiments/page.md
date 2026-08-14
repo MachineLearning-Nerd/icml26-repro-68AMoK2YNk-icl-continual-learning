@@ -1,16 +1,18 @@
-# Claim 5 — experiments: GPT-2 ICL (5a VERIFIED) + Qwen real-world (5b divergent)
+# Claim 5 — experiments: GPT-2 ICL (5a retained report) + Qwen real-world (5b divergent)
 
 Paper Sec 5: "Experiments on GPT-2 architectures confirm the predicted non-monotonic error curves and reproduce catastrophic forgetting with a 46% accuracy drop on real LLM tasks."
 
-This is two sub-claims. **5a (GPT-2) is VERIFIED. 5b (Qwen 46% drop) is NOT reproduced** under a faithful setup — reported honestly as divergent.
+This is two sub-claims. The later GPT-2 result is retained as a report because
+its raw 34k-step artifact is absent. The Qwen result is a documented divergence,
+and its later 1.5B raw artifact is also absent.
 
 ---
 
-## 5a — GPT-2-architecture ICL non-monotone error: **VERIFIED**
+## 5a — GPT-2-architecture ICL non-monotone error: **RETAINED REPORT ONLY**
 
 **Setup (paper Sec 5.1 + App D):** a decoder-style GPT-2 trained from scratch on linear-regression ICL (Garg et al. 2022 setup; `x∼N(0,I_d)`, `y=wᵀx`, identity covariance). Tiny config `3 layers / 2 heads / d_model=64` (0.281M params, the paper's "tiny GPT-2"). AdamW + warmup + cosine, curriculum on M. Evaluated on T=5 multi-task continual prompts.
 
-**Result (run `dee18666`, HF cpu-upgrade, 2h32m, 34000 steps, train loss 5.2→0.49, d=3):**
+**Retained report (run `dee18666`, HF cpu-upgrade, 2h32m, 34000 steps, train loss 5.2→0.49, d=3):**
 
 | M | Task 1 | Task 2 | Task 3 | Task 4 | Task 5 |
 |--|--|--|--|--|--|
@@ -29,21 +31,24 @@ This is two sub-claims. **5a (GPT-2) is VERIFIED. 5b (Qwen 46% drop) is NOT repr
 - **Task 4 peaks at M=3** (1.891→1.912→1.473) — directly matches the paper's "significant peak at intermediate context lengths (e.g. at M=3) before recovering."
 - **Task 5 peaks at M=16** (1.109→1.615→1.494).
 
-This reproduces the paper's central GPT-2 finding: a real softmax-attention transformer shows the predicted non-monotone per-task error in the multi-task continual setting.
+The report supports the paper's central GPT-2 finding, but this repository does
+not call it a fresh-clone reproduction: the committed
+`repro/outputs/claim5a_gpt2_icl.json` records only a 50-step `PARTIAL` run, and
+the 34k-step checkpoint/raw metrics are not committed.
 
-![GPT-2 non-monotone](https://raw.githubusercontent.com/MachineLearning-Nerd/icml26-repro-68AMoK2YNk-icl-continual-learning/main/reports/iccl-repro/images/fig_gpt2_nonmonotone.png)
+![GPT-2 non-monotone](https://raw.githubusercontent.com/MachineLearning-Nerd/icml26-in-context-continual-learning/main/reports/iccl-repro/images/fig_gpt2_nonmonotone.png)
 
-**Commands/env/provenance:** `uv run python repro/src/claim5a_gpt2_icl.py` · torch 2.13.0 (CPU) · run `dee18666` (HF `cpu-upgrade`, `--image ghcr.io/astral-sh/uv:python3.12-bookworm`) · seed `12345` · git `a335e8c`. Code: [`claim5a_gpt2_icl.py`](https://github.com/MachineLearning-Nerd/icml26-repro-68AMoK2YNk-icl-continual-learning/blob/orx/empirical-gpt-2-icl-non-monotone-claim-5a/repro/src/claim5a_gpt2_icl.py).
+**Commands/env/provenance:** `uv run python repro/src/claim5a_gpt2_icl.py` · torch 2.13.0 (CPU) · run `dee18666` (HF `cpu-upgrade`, `--image ghcr.io/astral-sh/uv:python3.12-bookworm`) · seed `12345` · git `a335e8c`. Code: [`claim5a_gpt2_icl.py`](https://github.com/MachineLearning-Nerd/icml26-in-context-continual-learning/blob/experiment/gpt2-claim-5a/repro/src/claim5a_gpt2_icl.py).
 
 **Deviation:** the standard 12-layer/256-dim model (~9.5M, 500k steps) is infeasible on CPU-only compute; we used the paper's *tiny* config (which the paper explicitly uses "to validate scalability"). d=3 (paper's identity-covariance linear-regression family).
 
 ---
 
-## 5b — Qwen2.5-1.5B-Instruct ICCL "~46% Task-A forgetting": **NOT REPRODUCED (divergent)**
+## 5b — Qwen2.5-1.5B-Instruct ICCL "~46% Task-A forgetting": **DIVERGENT RETAINED REPORT**
 
 **Setup (paper Sec 5.5 + App D, Table 2):** Qwen2.5-1.5B-Instruct (frozen), prompt = `M` SST-2 demos then `M` AG News demos then a final query; greedy generation (`max_new_tokens` small), keyword label parsing. Measure Task-A forgetting (A queried at end of A-then-B prompt) and Task-B negative transfer.
 
-**Faithful run (run `562de57a`, local backend*, M∈{1,5,19}, 24 queries/condition):**
+**Retained report (run `562de57a`, local backend*, M∈{1,5,19}, 24 queries/condition):**
 
 | M | A baseline | A final | A Δ | B baseline | B iccl | B Δ |
 |--|--|--|--|--|--|--|
@@ -57,8 +62,12 @@ This reproduces the paper's central GPT-2 finding: a real softmax-attention tran
 
 **Pure-ICCL variant (no task-name hint, M=1, 40 queries):** A Δ −0.050, B Δ −0.075 — still far below the paper's 46%. The instructed model overrides attention interference when given an explicit task cue, and only slightly degrades even without one.
 
-**Assessment (honest):** the reported ~46% Task-A forgetting drop was **not reproduced** under a faithful Qwen2.5-1.5B-Instruct setup (same model, same tasks, the paper's prompt template). Per reproduction norms we do **not** call the paper wrong — likely contributors: (a) the instructed model is robust to the explicit task-name header in the final query; (b) the original demos/sampling and exact decoding are unreleased; (c) possible model-weight drift since the paper. Claim 5b is recorded as a documented divergence, not FALSIFIED.
+**Assessment (honest):** the reported ~46% Task-A forgetting drop was **not reproduced** in the retained Qwen2.5-1.5B report (same model family, tasks, and prompt protocol). Per reproduction norms we do **not** call the paper wrong — likely contributors: (a) the instructed model is robust to the explicit task-name header in the final query; (b) the original demos/sampling and exact decoding are unreleased; (c) possible model-weight drift since the paper. Claim 5b is recorded as a documented divergence, not FALSIFIED.
+
+The committed `repro/outputs/claim5b_qwen_realworld.json` is an earlier
+Qwen2.5-0.5B, 32-query `PARTIAL` snapshot. It is not the raw artifact for the
+later 1.5B report, so the report result remains not fresh-clone reproducible.
 
 \* **Compute deviation:** HF pre-paid credits were exhausted (HTTP 402) immediately after the GPT-2 run; 5b fell back to the orx **local** backend (model weights still from HF Hub). git `d17e68b`, seed `7`, wall ~32 min.
 
-**Commands/env/provenance:** `uv run python repro/src/claim5b_qwen_realworld.py` · transformers 5.14.1 · datasets: `stanfordnlp/sst2`, `fancyzhx/ag_news` (namespaced IDs for datasets 5.x). Code: [`claim5b_qwen_realworld.py`](https://github.com/MachineLearning-Nerd/icml26-repro-68AMoK2YNk-icl-continual-learning/blob/orx/empirical-qwen2-5-1-5b-real-world-iccl-claim-5b/repro/src/claim5b_qwen_realworld.py). Raw JSON: `repro/outputs/claim5b_qwen_realworld.json`.
+**Commands/env/provenance:** `uv run python repro/src/claim5b_qwen_realworld.py` · transformers 5.14.1 · datasets: `stanfordnlp/sst2`, `fancyzhx/ag_news` (namespaced IDs for datasets 5.x). Code: [`claim5b_qwen_realworld.py`](https://github.com/MachineLearning-Nerd/icml26-in-context-continual-learning/blob/experiment/qwen-claim-5b/repro/src/claim5b_qwen_realworld.py). Raw JSON: `repro/outputs/claim5b_qwen_realworld.json`.

@@ -3,7 +3,7 @@
 ## Exact claim tested
 Forgetting interference splits into (i) a **variance** part that decays as `O(1/M)` with context length and (ii) a **mean-misalignment** part that **persists regardless of M**, leaving a nonzero asymptotic forgetting floor for misaligned tasks (and vanishing for aligned tasks). Paper: Sec 4 (forgetting, Context Length), Remark.
 
-**Verdict: VERIFIED** (HIGH confidence).
+**Verdict: VERIFIED_SCOPED** (HIGH confidence within the finite audit scope).
 
 ## Decomposition (from the Claim-2-verified interference formula)
 ```
@@ -19,7 +19,7 @@ Config: `T=4, t=2, d=3, Λ=diag(0.8,1.3,2.1)`, misaligned means. `M ∈ {1,2,4,�
 - **mean interference → persistent floor 0.6613** (positive; relative error 1.4e-6).
 - **Aligned negative control** (all means equal): floor → **0** (ratio 8e-14 vs misaligned).
 
-![asymptotic](https://raw.githubusercontent.com/MachineLearning-Nerd/icml26-repro-68AMoK2YNk-icl-continual-learning/main/reports/iccl-repro/images/fig_theory_asymptotic.png)
+![asymptotic](https://raw.githubusercontent.com/MachineLearning-Nerd/icml26-in-context-continual-learning/main/reports/iccl-repro/images/fig_theory_asymptotic.png)
 
 ## Broad random sweep (generality)
 12 random configs (`d∈{2..6}`, `T∈{2..5}`, random PSD Λ, random w): **11/12** have variance slope within 0.01 of −1; **11/12** have a positive persistent floor reached to <1e-4.
@@ -27,7 +27,7 @@ Config: `T=4, t=2, d=3, Λ=diag(0.8,1.3,2.1)`, misaligned means. `M ∈ {1,2,4,�
 ## Commands, env, provenance
 - Command: `uv run python repro/src/claim4_asymptotic.py`. Env: Python 3.12, numpy 2.5.1.
 - Run: `a294fef0` (local). Seed `20245`. Wall <1s.
-- Code: [`claim4_asymptotic.py`](https://github.com/MachineLearning-Nerd/icml26-repro-68AMoK2YNk-icl-continual-learning/blob/orx/theory-rigorous-verification-of-claims-1-4/repro/src/claim4_asymptotic.py). Raw JSON: `repro/outputs/claim4_asymptotic.json`. Verifier exits nonzero on failure.
+- Code: [`claim4_asymptotic.py`](https://github.com/MachineLearning-Nerd/icml26-in-context-continual-learning/blob/audit/theory-claims-1-4/repro/src/claim4_asymptotic.py). Raw JSON: `repro/outputs/claim4_asymptotic.json`. Verifier exits nonzero on failure.
 
 ## Limitations
 The analytic limit uses `Γ commuting with Λ` (true: `Γ = aΛ + bI`); the floor value depends on the task-mean alignment and ordering, exactly as the paper states.
